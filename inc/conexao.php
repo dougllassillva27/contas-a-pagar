@@ -1,9 +1,18 @@
 <?php
+// Define o tempo de vida da sessão para 8 horas (28800 segundos)
+// Esta configuração deve vir ANTES de session_start()
+$tempo_de_vida_da_sessao = 28800;
+
+// Configura o tempo que a sessão fica ativa no servidor (Garbage Collector)
+ini_set('session.gc_maxlifetime', $tempo_de_vida_da_sessao);
+
+// Configura o tempo que o cookie da sessão fica ativo no navegador do usuário
+ini_set('session.cookie_lifetime', $tempo_de_vida_da_sessao);
+
 // Inicia a sessão para que possamos usar variáveis de login em toda a aplicação.
 session_start();
 
-// AJUSTE: O caminho para o arquivo .env foi atualizado para a localização absoluta e dedicada que você especificou.
-// Este é um método mais seguro e explícito.
+// O caminho para o arquivo .env foi atualizado para a localização absoluta e dedicada.
 $env_caminho = '/home/dougl951/configs/contas-a-pagar/.env';
 
 if (file_exists($env_caminho)) {
