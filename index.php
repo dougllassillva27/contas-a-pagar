@@ -168,6 +168,13 @@ $nome_mes_atual = strftime('%B de %Y', $data_base->getTimestamp());
             </section>
         </div>
     </main>
+
+    <footer class="rodape-principal">
+        <p>
+            Desenvolvido por
+            <a href="https://www.linkedin.com/in/dougllassillva27/" target="_blank" rel="noopener noreferrer">Douglas Silva</a>
+        </p>
+    </footer>
     
     <div id="modal-rendas" class="modal-camada-externa" style="display:none;">
         <div class="modal-conteudo">

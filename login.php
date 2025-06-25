@@ -85,9 +85,9 @@ $erro = $_GET['erro'] ?? '';
                 // 2. Mostra o modal com o efeito de fade-in
                 modalCarregando.classList.add('visivel');
 
-                // 3. Define um atraso de 5 segundos
+                // 3. Define um atraso de 3 segundos (conforme ajuste do usuário)
                 setTimeout(() => {
-                    // 4. Após 5 segundos, envia o formulário
+                    // 4. Após o atraso, envia o formulário
                     formLogin.submit();
                 }, 3000); 
             });
@@ -100,5 +100,12 @@ $erro = $_GET['erro'] ?? '';
             });
         }
     </script>
+    
+    <footer class="rodape-login">
+        <p>
+            Desenvolvido por
+            <a href="https://www.linkedin.com/in/dougllassillva27/" target="_blank" rel="noopener noreferrer">Douglas Silva</a>
+        </p>
+    </footer>
 </body>
 </html>

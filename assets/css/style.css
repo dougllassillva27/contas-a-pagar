@@ -769,3 +769,27 @@ tr.paga td {
     flex-direction: column;
   }
 }
+
+/* Estilos para o Rodapé Principal (Ajustado) */
+.rodape-principal {
+  width: 100%;
+  padding: 1rem 2rem; /* Padding vertical reduzido para deixar mais fino */
+  margin-top: 1.5rem; /* Margem superior ligeiramente reduzida */
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+  border-top: 1px solid var(--cor-borda);
+  background-color: var(--cor-fundo);
+}
+.rodape-principal p {
+  margin: 0;
+}
+.rodape-principal a {
+  color: var(--cor-texto-principal);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.rodape-principal a:hover {
+  color: var(--cor-principal);
+}
