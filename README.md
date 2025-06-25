@@ -15,13 +15,15 @@ Permite o gerenciamento de contas a pagar, rendas e anotações mensais, com uma
 
 ## 📸 Screenshots
 
-*(Adicione aqui screenshots da sua aplicação para uma visualização melhor do projeto.)*
+_(Adicione aqui screenshots da sua aplicação para uma visualização melhor do projeto.)_
 
-- **Tela de Login:**  
-  ![Tela de Login](caminho/para/sua/imagem_login.png)
+- **Tela de Login:**
 
-- **Painel Principal:**  
-  ![Painel Principal](caminho/para/sua/imagem_painel.png)
+  ![Tela de Login](assets/img/tela_login.webp)
+
+- **Painel Principal:**
+
+  ![Painel Principal](assets/img/tela_principal.webp)
 
 ---
 
@@ -140,21 +142,21 @@ Acesse via navegador:
 
 ## 🔗 Endpoints da API
 
-| Método  | Endpoint                             | Descrição                                         |
-|---------|--------------------------------------|--------------------------------------------------|
-| GET     | `/api/contas/listar.php`             | Lista todas as contas do mês.                    |
-| GET     | `/api/rendas/listar.php`             | Lista todas as rendas do mês.                    |
-| GET     | `/api/anotacoes/obter.php`           | Obtém a anotação do mês.                         |
-| POST    | `/api/contas/criar.php`              | Cria uma nova conta.                             |
-| POST    | `/api/rendas/criar.php`              | Cria uma nova renda.                             |
-| POST    | `/api/contas/atualizar.php`          | Atualiza uma conta existente.                    |
-| POST    | `/api/rendas/atualizar.php`          | Atualiza uma renda existente.                    |
-| POST    | `/api/contas/excluir.php`            | Exclui uma conta.                                |
-| POST    | `/api/rendas/excluir.php`            | Exclui uma renda.                                |
-| POST    | `/api/lancamentos/reordenar.php`     | Reordena um lançamento.                          |
-| POST    | `/api/anotacoes/salvar.php`          | Salva ou atualiza a anotação do mês.             |
-| POST    | `/api/deletar_mes.php`               | Deleta todos os dados do mês.                    |
-| POST    | `/api/contas/copiar_mes.php`         | Copia os dados de um mês para o próximo.         |
+| Método | Endpoint                         | Descrição                                |
+| ------ | -------------------------------- | ---------------------------------------- |
+| GET    | `/api/contas/listar.php`         | Lista todas as contas do mês.            |
+| GET    | `/api/rendas/listar.php`         | Lista todas as rendas do mês.            |
+| GET    | `/api/anotacoes/obter.php`       | Obtém a anotação do mês.                 |
+| POST   | `/api/contas/criar.php`          | Cria uma nova conta.                     |
+| POST   | `/api/rendas/criar.php`          | Cria uma nova renda.                     |
+| POST   | `/api/contas/atualizar.php`      | Atualiza uma conta existente.            |
+| POST   | `/api/rendas/atualizar.php`      | Atualiza uma renda existente.            |
+| POST   | `/api/contas/excluir.php`        | Exclui uma conta.                        |
+| POST   | `/api/rendas/excluir.php`        | Exclui uma renda.                        |
+| POST   | `/api/lancamentos/reordenar.php` | Reordena um lançamento.                  |
+| POST   | `/api/anotacoes/salvar.php`      | Salva ou atualiza a anotação do mês.     |
+| POST   | `/api/deletar_mes.php`           | Deleta todos os dados do mês.            |
+| POST   | `/api/contas/copiar_mes.php`     | Copia os dados de um mês para o próximo. |
 
 ---
 
