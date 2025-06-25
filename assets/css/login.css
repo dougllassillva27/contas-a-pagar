@@ -1,0 +1,200 @@
+/*
+ * CSS Moderno para a tela de login
+ * Design simplificado, focado em e-mail e senha.
+ */
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  background-color: #1a1a1a;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.formulario-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  background-color: #1f1f1f;
+  padding: 30px;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  box-sizing: border-box;
+  padding: 2rem;
+}
+.logo-login {
+  text-align: center;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #f1f1f1;
+  margin-bottom: 25px;
+}
+::placeholder {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: #aaa;
+}
+.flex-coluna > label {
+  color: #f1f1f1;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+  font-size: 0.9rem;
+}
+.input-container {
+  border: 1.5px solid #333;
+  border-radius: 10px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  transition: 0.2s ease-in-out;
+  background-color: #2b2b2b;
+}
+.input-container:focus-within {
+  border: 1.5px solid #2d79f3;
+}
+.input-campo {
+  margin-left: 10px;
+  border-radius: 10px;
+  border: none;
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  color: #f1f1f1;
+  font-size: 1rem;
+  position: relative;
+}
+.input-campo:focus {
+  outline: none;
+}
+.botao-submeter {
+  margin: 20px 0 10px 0;
+  background-color: #2d79f3;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 10px;
+  height: 50px;
+  width: 100%;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.botao-submeter:hover {
+  background-color: #1c66d4;
+}
+.mensagem-erro {
+  text-align: center;
+  color: #ef4444;
+  font-size: 0.9rem;
+  margin-top: 15px;
+  background-color: rgba(239, 68, 68, 0.1);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+.input-container svg {
+  flex-shrink: 0;
+  fill: #888;
+}
+
+/* Corrige o fundo branco do autofill em navegadores Chromium */
+.input-campo:-webkit-autofill,
+.input-campo:-webkit-autofill:hover,
+.input-campo:-webkit-autofill:focus,
+.input-campo:-webkit-autofill:active {
+  -webkit-text-fill-color: #f1f1f1;
+  caret-color: #f1f1f1;
+  transition: background-color 5000s ease-in-out 0s;
+
+  /* Mantém a pintura do fundo com o box-shadow */
+  box-shadow: 0 0 0px 1000px #2b2b2b inset;
+
+  /* Recorta 2px do fundo para que a borda do container-pai apareça */
+  clip-path: inset(2px);
+}
+
+/* Estilos para o Modal de Carregamento */
+.modal-carregando-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.modal-carregando-overlay.visivel {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Spinner Domino (CSS fornecido e adaptado) */
+.spinner-domino {
+  position: relative;
+  width: 60px;
+  height: 60px;
+}
+.spinner-domino span {
+  position: absolute;
+  top: 50%;
+  left: var(--left);
+  width: 35px;
+  height: 7px;
+  background: #ffff;
+  animation: dominos 1s ease infinite;
+  box-shadow: 2px 2px 3px 0px rgba(0, 0, 0, 0.5);
+  border-radius: 2px;
+}
+.spinner-domino span:nth-child(1) {
+  --left: 80px;
+  animation-delay: 0.125s;
+}
+.spinner-domino span:nth-child(2) {
+  --left: 70px;
+  animation-delay: 0.3s;
+}
+.spinner-domino span:nth-child(3) {
+  left: 60px;
+  animation-delay: 0.425s;
+}
+.spinner-domino span:nth-child(4) {
+  animation-delay: 0.54s;
+  left: 50px;
+}
+.spinner-domino span:nth-child(5) {
+  animation-delay: 0.665s;
+  left: 40px;
+}
+.spinner-domino span:nth-child(6) {
+  animation-delay: 0.79s;
+  left: 30px;
+}
+.spinner-domino span:nth-child(7) {
+  animation-delay: 0.915s;
+  left: 20px;
+}
+.spinner-domino span:nth-child(8) {
+  left: 10px;
+}
+
+@keyframes dominos {
+  50% {
+    opacity: 0.7;
+  }
+  75% {
+    transform: rotate(90deg);
+  }
+  80% {
+    opacity: 1;
+  }
+}
