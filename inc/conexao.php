@@ -23,17 +23,14 @@
  * SOFTWARE.
  */
 
-// PASSO 1: Definir um caminho privado para salvar os arquivos de sessão.
-// Esta pasta deve ser criada no seu servidor, FORA do public_html.
-$caminho_sessoes = '/home/dougl951/sessions';
+// PASSO 1: Definir um caminho privado e PORTÁTIL para as sessões.
+// Usamos um nome de pasta dedicado para este projeto.
+$caminho_sessoes = $_SERVER['DOCUMENT_ROOT'] . '/../sessions_contas';
 
-// Garante que o diretório exista. Se não, tenta criá-lo.
+// Garante que o diretório exista.
 if (!is_dir($caminho_sessoes)) {
-    // A permissão 0700 significa que apenas o dono (seu usuário de hospedagem) pode ler, escrever e executar.
     mkdir($caminho_sessoes, 0700, true);
 }
-
-// Define o novo caminho para salvar as sessões. DEVE vir antes de session_start().
 session_save_path($caminho_sessoes);
 
 
