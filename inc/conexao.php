@@ -22,9 +22,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-// Define o tempo de vida da sessão para 8 horas (28800 segundos)
-// Esta configuração deve vir ANTES de session_start()
-$tempo_de_vida_da_sessao = 28800;
+
+// PASSO 1: Definir um caminho privado para salvar os arquivos de sessão.
+// Esta pasta deve ser criada no seu servidor, FORA do public_html.
+$caminho_sessoes = '/home/dougl951/sessions';
+
+// Garante que o diretório exista. Se não, tenta criá-lo.
+if (!is_dir($caminho_sessoes)) {
+    // A permissão 0700 significa que apenas o dono (seu usuário de hospedagem) pode ler, escrever e executar.
+    mkdir($caminho_sessoes, 0700, true);
+}
+
+// Define o novo caminho para salvar as sessões. DEVE vir antes de session_start().
+session_save_path($caminho_sessoes);
+
+
+// PASSO 2: Definir o tempo de vida da sessão
+$tempo_de_vida_da_sessao = 28800; // 8 horas
 
 // Configura o tempo que a sessão fica ativa no servidor (Garbage Collector)
 ini_set('session.gc_maxlifetime', $tempo_de_vida_da_sessao);
@@ -32,14 +46,15 @@ ini_set('session.gc_maxlifetime', $tempo_de_vida_da_sessao);
 // Configura o tempo que o cookie da sessão fica ativo no navegador do usuário
 ini_set('session.cookie_lifetime', $tempo_de_vida_da_sessao);
 
-// Inicia a sessão para que possamos usar variáveis de login em toda a aplicação.
+
+// PASSO 3: Iniciar a sessão com as novas configurações aplicadas
 session_start();
 
-// O caminho para o arquivo .env foi atualizado para a localização absoluta e dedicada.
+
+// PASSO 4: Conexão com o Banco de Dados (código existente)
 $env_caminho = '/home/dougl951/configs/contas-a-pagar/.env';
 
 if (file_exists($env_caminho)) {
-    // Carrega as variáveis de ambiente do arquivo .env.
     $env = parse_ini_file($env_caminho);
     $db_host = $env['DB_HOST'];
     $db_port = $env['DB_PORT'];
@@ -47,24 +62,19 @@ if (file_exists($env_caminho)) {
     $db_user = $env['DB_USER'];
     $db_pass = $env['DB_PASS'];
 } else {
-    // Se o arquivo .env não for encontrado no caminho especificado, interrompe a execução com um erro claro.
     die("Erro crítico: Arquivo de configuração .env não encontrado em '" . htmlspecialchars($env_caminho) . "'.");
 }
 
 try {
-    // Cria a conexão com o banco de dados usando PDO (PHP Data Objects).
     $pdo = new PDO(
         "mysql:host=$db_host;port=$db_port;dbname=$db_name;charset=utf8mb4",
         $db_user,
         $db_pass,
         [
-            // Configura o PDO para lançar exceções em caso de erro.
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            // Define o modo de busca padrão para retornar arrays associativos.
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ]
     );
 } catch (PDOException $e) {
-    // Se a conexão falhar, interrompe a execução e exibe a mensagem de erro.
     die("Erro de conexão com o banco de dados: " . $e->getMessage());
 }
