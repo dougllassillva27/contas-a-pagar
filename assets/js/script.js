@@ -389,14 +389,19 @@ function processarRegrasDeNegocio(listaDeContas) {
 }
 
 function renderizarCardExclusivo(nomeCard, contasPessoais, dadosTerceiro) {
-  const containerTabela = document.querySelector(`#tabela-contas-${nomeCard}`);
-  const containerAcordeao = document.getElementById(`acordeao-terceiro-${nomeCard}-container`);
+  const nomeCardLower = nomeCard.toLowerCase();
+  const containerTabela = document.querySelector(`#tabela-contas-${nomeCardLower}`);
+  const containerAcordeao = document.getElementById(`acordeao-terceiro-${nomeCardLower}-container`);
+
   if (!containerTabela || !containerAcordeao) return;
+
   preencherTabelaDeContasPessoais(containerTabela.querySelector('tbody'), contasPessoais);
   containerAcordeao.innerHTML = '';
+
   if (dadosTerceiro && dadosTerceiro.itens.length > 0) {
     const nomeCapitalizado = nomeCard.charAt(0).toUpperCase() + nomeCard.slice(1);
-    const dadosParaRenderizar = { [nomeCapitalizado]: dadosTerceiro };
+    const tituloAcordeao = `${nomeCapitalizado} cartão`;
+    const dadosParaRenderizar = { [tituloAcordeao]: dadosTerceiro };
     preencherCartoesDeTerceiros(dadosParaRenderizar, containerAcordeao, false);
   }
 }
