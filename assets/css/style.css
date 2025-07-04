@@ -22,6 +22,10 @@
  * SOFTWARE.
  */
 
+/* ===================================================================================
+// VARIÁVEIS DE TEMA E MODO ESCURO
+// =================================================================================== */
+
 :root {
   --cor-principal: #3b82f6;
   --cor-principal-hover: #2563eb;
@@ -51,6 +55,10 @@ body.modo-dark {
   --sombra-card: none;
 }
 
+/* ===================================================================================
+// ESTILOS GLOBAIS E RESET
+// =================================================================================== */
+
 *,
 *::before,
 *::after {
@@ -64,6 +72,10 @@ body {
   margin: 0;
   line-height: 1.6;
 }
+
+/* ===================================================================================
+// CABEÇALHO PRINCIPAL
+// =================================================================================== */
 
 .cabecalho-principal {
   background-color: var(--cor-card);
@@ -167,6 +179,10 @@ body {
   background-color: var(--cor-fundo);
 }
 
+/* ===================================================================================
+// LAYOUT PRINCIPAL E CARDS DE RESUMO
+// =================================================================================== */
+
 .container-principal {
   max-width: 99%;
   margin: 0 auto;
@@ -220,6 +236,10 @@ body {
   margin-bottom: 1.5rem;
 }
 
+/* ===================================================================================
+// ESTRUTURA DOS CARDS DE LANÇAMENTOS
+// =================================================================================== */
+
 .grid-lancamentos {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
@@ -262,6 +282,10 @@ body {
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--cor-borda);
 }
+
+/* ===================================================================================
+// ESTILOS DE FORMULÁRIO GENÉRICOS
+// =================================================================================== */
 
 .container-formularios {
   display: flex;
@@ -320,6 +344,10 @@ button:hover {
   border-radius: 999px;
 }
 
+/* ===================================================================================
+// TABELAS DE LANÇAMENTOS
+// =================================================================================== */
+
 .tabela-lancamentos {
   width: 100%;
   border-collapse: collapse;
@@ -361,10 +389,6 @@ button:hover {
   flex-wrap: nowrap;
 }
 
-tr.paga {
-  background-color: #f0fdf4;
-}
-
 tr.paga .celula-com-acoes,
 tr.paga td {
   color: var(--cor-texto-secundario);
@@ -391,6 +415,10 @@ tr.paga td {
 .botao-acao-linha:hover {
   opacity: 1;
 }
+
+/* ===================================================================================
+// COMPONENTE ACORDEÃO (USADO PARA CARTÕES DE CRÉDITO)
+// =================================================================================== */
 
 #cards-terceiros-container {
   max-height: 650px;
@@ -490,6 +518,10 @@ tr.paga td {
 .acordeao-corpo li:last-child {
   border-bottom: none;
 }
+
+/* ===================================================================================
+// ESTILOS DE MODAIS
+// =================================================================================== */
 
 .modal-camada-externa {
   position: fixed;
@@ -611,7 +643,11 @@ tr.paga td {
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Barra de rolagem para navegadores WebKit */
+/* ===================================================================================
+// OUTROS COMPONENTES E UTILITÁRIOS
+// =================================================================================== */
+
+/* Estilização da Barra de Rolagem */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -631,6 +667,7 @@ tr.paga td {
   background-color: rgba(0, 0, 0, 0.3);
 }
 
+/* Linha de conferência do valor do app de cartão de crédito */
 .linha-comparacao-app {
   display: flex;
   align-items: center;
@@ -658,6 +695,7 @@ tr.paga td {
   color: var(--cor-principal);
 }
 
+/* Menu de Ações para Mobile */
 .menu-acoes-mobile {
   position: relative;
   display: none;
@@ -700,9 +738,10 @@ tr.paga td {
   background-color: var(--cor-fundo);
 }
 
+/* Textarea para anotações */
 .area-anotacoes {
   width: 100%;
-  min-height: 400px; /* Aumentado de 150px para um tamanho mais confortável */
+  min-height: 400px;
   resize: vertical;
   padding: 0.75rem;
   margin-top: 1rem;
@@ -723,7 +762,7 @@ tr.paga td {
 }
 
 /* ===================================================================================
-// ESTILOS PARA DISPOSITIVOS MÓVEIS
+// ESTILOS RESPONSIVOS PARA DISPOSITIVOS MÓVEIS
 // =================================================================================== */
 
 @media screen and (max-width: 768px) {
@@ -794,11 +833,14 @@ tr.paga td {
   }
 }
 
-/* Estilos para o Rodapé Principal (Ajustado) */
+/* ===================================================================================
+// RODAPÉ
+// =================================================================================== */
+
 .rodape-principal {
   width: 100%;
-  padding: 1rem 2rem; /* Padding vertical reduzido para deixar mais fino */
-  margin-top: 1.5rem; /* Margem superior ligeiramente reduzida */
+  padding: 1rem 2rem;
+  margin-top: 1.5rem;
   text-align: center;
   font-size: 0.85rem;
   color: var(--cor-texto-secundario);

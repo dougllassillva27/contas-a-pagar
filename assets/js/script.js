@@ -23,9 +23,14 @@
  */
 
 // ===================================================================================
-// FUNÇÕES DE MANIPULAÇÃO DE FORMULÁRIOS (necessárias antes do DOMContentLoaded)
+// FUNÇÕES DE MANIPULAÇÃO DE FORMULÁRIOS
 // ===================================================================================
 
+/**
+ * Manipula a submissão dos formulários de criação de novas rendas e contas.
+ * Envia os dados para a API correspondente e atualiza o painel em caso de sucesso.
+ * @param {SubmitEvent} evento O evento de submissão do formulário.
+ */
 async function manipularSubmissaoDeNovoItem(evento) {
   evento.preventDefault();
   const formulario = evento.target;
@@ -55,6 +60,9 @@ async function manipularSubmissaoDeNovoItem(evento) {
 // FUNÇÕES DE ANOTAÇÕES
 // ===================================================================================
 
+/**
+ * Carrega o conteúdo da anotação do mês atual da API e a exibe na textarea.
+ */
 async function carregarAnotacao() {
   try {
     const resposta = await fetch(`${BASE_URL}/api/anotacoes/obter.php?mes=${MES_ANO_ATUAL}`);
@@ -69,6 +77,10 @@ async function carregarAnotacao() {
   }
 }
 
+/**
+ * Salva o conteúdo da anotação na API.
+ * @param {string} conteudo O texto a ser salvo.
+ */
 async function salvarAnotacao(conteudo) {
   try {
     await fetch(`${BASE_URL}/api/anotacoes/salvar.php`, {
@@ -84,12 +96,17 @@ async function salvarAnotacao(conteudo) {
   }
 }
 
+/**
+ * Versão "debounced" da função salvarAnotacao para evitar requisições excessivas à API.
+ * @type {function(string): void}
+ */
 const salvarAnotacaoDebounced = debounce(salvarAnotacao, 750);
 
 // ===================================================================================
 // LÓGICA PRINCIPAL E MODO DARK
 // ===================================================================================
 
+// Listener global para fechar o menu de ações mobile se o clique for fora dele.
 document.addEventListener('click', (evento) => {
   const dropdown = document.getElementById('dropdown-menu-acoes');
   const botaoMenu = document.getElementById('botao-menu-acoes');
@@ -98,11 +115,13 @@ document.addEventListener('click', (evento) => {
   }
 });
 
+// Ponto de entrada principal do script após o carregamento do DOM.
 document.addEventListener('DOMContentLoaded', () => {
   vincularListenersDeEventosGlobais();
   carregarDadosDoPainel();
   ajustarLayoutDesktop();
 
+  // Lógica para alternância e persistência do tema (claro/escuro).
   const corpo = document.body;
   const botaoTema = document.getElementById('alternar-tema');
   const temaSalvo = localStorage.getItem('modo-tema');
@@ -117,6 +136,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // FUNÇÕES DE SETUP E MANIPULAÇÃO DE EVENTOS
 // ===================================================================================
 
+/**
+ * Centraliza a vinculação de todos os listeners de eventos da aplicação.
+ * Isso organiza o código e facilita a manutenção.
+ */
 function vincularListenersDeEventosGlobais() {
   const adicionarListenerSeguro = (seletor, tipoDeEvento, funcaoDeCallback) => {
     const elemento = document.getElementById(seletor);
@@ -126,23 +149,36 @@ function vincularListenersDeEventosGlobais() {
       console.warn(`Aviso de Arquitetura: Elemento com ID '${seletor}' não foi encontrado no HTML.`);
     }
   };
+
+  // Formulários principais
   adicionarListenerSeguro('form-nova-renda', 'submit', manipularSubmissaoDeNovoItem);
   adicionarListenerSeguro('form-nova-conta', 'submit', manipularSubmissaoDeNovoItem);
   adicionarListenerSeguro('formulario-edicao', 'submit', salvarAlteracoes);
+
+  // Botões de ação do cabeçalho
   adicionarListenerSeguro('btn-copiar-mes', 'click', copiarContasParaProximoMes);
   adicionarListenerSeguro('btn-deletar-mes', 'click', iniciarExclusaoDeMes);
+
+  // Abertura de modais
   adicionarListenerSeguro('botao-abrir-modal-lancamento', 'click', () => abrirModal('modal-lancamento'));
   adicionarListenerSeguro('card-total-rendas', 'click', () => abrirModal('modal-rendas'));
+
+  // Campos de formulário com comportamento especial
   adicionarListenerSeguro('tipo-conta', 'change', alternarVisibilidadeInfoParcela);
   adicionarListenerSeguro('select-editar-tipo-conta', 'change', alternarVisibilidadeInfoParcela);
   adicionarListenerSeguro('parcela-info', 'input', formatarInputDeParcela);
   adicionarListenerSeguro('campo-editar-info-parcela', 'input', formatarInputDeParcela);
+
+  // Modal de confirmação
   adicionarListenerSeguro('botao-cancelar-confirmacao', 'click', () => fecharModal('modal-confirmacao'));
   adicionarListenerSeguro('botao-executar-confirmacao', 'click', executarExclusao);
+
+  // Anotações
   adicionarListenerSeguro('area-anotacoes', 'input', (evento) => {
     salvarAnotacaoDebounced(evento.target.value);
   });
 
+  // Campo de conferência do valor do App do Cartão
   const campoValorApp = document.getElementById('valor-app-cartao');
   if (campoValorApp) {
     campoValorApp.addEventListener('input', (evento) => {
@@ -172,24 +208,21 @@ function vincularListenersDeEventosGlobais() {
     });
   }
 
-  // LÓGICA DO MENU DE AÇÕES MOBILE
+  // Lógica do Menu de Ações Mobile
   adicionarListenerSeguro('botao-menu-acoes', 'click', (evento) => {
     evento.stopPropagation();
     document.getElementById('dropdown-menu-acoes').classList.toggle('visivel');
   });
-
   adicionarListenerSeguro('link-copiar-mobile', 'click', (evento) => {
     evento.preventDefault();
     copiarContasParaProximoMes();
     document.getElementById('dropdown-menu-acoes').classList.remove('visivel');
   });
-
   adicionarListenerSeguro('link-deletar-mobile', 'click', (evento) => {
     evento.preventDefault();
     iniciarExclusaoDeMes();
     document.getElementById('dropdown-menu-acoes').classList.remove('visivel');
   });
-
   adicionarListenerSeguro('link-tema-mobile', 'click', (evento) => {
     evento.preventDefault();
     const corpo = document.body;
@@ -198,6 +231,7 @@ function vincularListenersDeEventosGlobais() {
     document.getElementById('dropdown-menu-acoes').classList.remove('visivel');
   });
 
+  // Listeners para fechar modais
   document.querySelectorAll('.modal-botao-fechar').forEach((botao) => {
     botao.addEventListener('click', (evento) => {
       const modal = evento.target.closest('.modal-camada-externa');
@@ -211,11 +245,13 @@ function vincularListenersDeEventosGlobais() {
       }
     });
   });
+
+  // Listener delegado para ações de linha (editar, excluir, mover) e acordeões
   document.body.addEventListener('click', (evento) => {
     const gatilhoAcao = evento.target.closest('.botao-acao-linha');
     const cabecalhoAcordeao = evento.target.closest('.acordeao-cabecalho');
     if (gatilhoAcao) {
-      evento.stopPropagation();
+      evento.stopPropagation(); // Impede que o clique no botão acione o acordeão
       const { acao, tipo, id } = gatilhoAcao.dataset;
       if (acao === 'editar') {
         abrirJanelaDeEdicao(tipo, id);
@@ -239,6 +275,14 @@ function vincularListenersDeEventosGlobais() {
 // FUNÇÕES DE PERSISTÊNCIA (BANCO DE DADOS)
 // ===================================================================================
 
+/**
+ * Função de alta ordem que cria uma versão "debounced" de uma função.
+ * Isso atrasa a execução da função até que um certo tempo tenha passado sem ela ser chamada.
+ * Útil para inputs de texto, para não enviar uma requisição a cada tecla pressionada.
+ * @param {Function} func A função a ser "debounced".
+ * @param {number} [delay=500] O tempo de espera em milissegundos.
+ * @returns {Function} A nova função "debounced".
+ */
 function debounce(func, delay = 500) {
   let timeoutId;
   return (...args) => {
@@ -249,6 +293,10 @@ function debounce(func, delay = 500) {
   };
 }
 
+/**
+ * Salva o valor de conferência do App do Cartão no banco de dados.
+ * @param {number|string} valor O valor a ser salvo.
+ */
 function salvarValorAppNoBanco(valor) {
   fetch(`${BASE_URL}/api/valores_conferencia/salvar.php`, {
     method: 'POST',
@@ -268,8 +316,15 @@ function salvarValorAppNoBanco(valor) {
     .catch((error) => console.error('Falha na comunicação ao salvar valor:', error));
 }
 
+/**
+ * Versão debounced da função de salvar o valor do app.
+ * @type {function(string): void}
+ */
 const salvarValorAppDebounced = debounce(salvarValorAppNoBanco, 500);
 
+/**
+ * Carrega o valor de conferência do App do Cartão do banco e o exibe no campo correspondente.
+ */
 async function carregarValorAppDoBanco() {
   const campoInput = document.getElementById('valor-app-cartao');
   if (!campoInput) return;
@@ -290,20 +345,37 @@ async function carregarValorAppDoBanco() {
 // FUNÇÕES DE CONTROLE DE UI (MODAIS, ACORDEÃO, ETC.)
 // ===================================================================================
 
+/**
+ * Torna um modal visível.
+ * @param {string} seletor O ID do modal a ser aberto.
+ */
 function abrirModal(seletor) {
   const modal = document.getElementById(seletor);
   if (modal) modal.style.display = 'flex';
 }
+
+/**
+ * Esconde um modal.
+ * @param {string} seletor O ID do modal a ser fechado.
+ */
 function fecharModal(seletor) {
   const modal = document.getElementById(seletor);
   if (modal) modal.style.display = 'none';
 }
+
+/**
+ * Alterna a visibilidade do corpo de um acordeão ao clicar em seu cabeçalho.
+ * @param {HTMLElement} cabecalho O elemento do cabeçalho do acordeão que foi clicado.
+ */
 function alternarVisibilidadeAcordeao(cabecalho) {
   cabecalho.classList.toggle('ativo');
   const corpo = cabecalho.nextElementSibling;
   corpo.classList.toggle('visivel');
 }
 
+/**
+ * Abre todos os acordeões por padrão em telas maiores (desktop).
+ */
 function ajustarLayoutDesktop() {
   const larguraDaTela = window.innerWidth;
   if (larguraDaTela > 768) {
@@ -316,6 +388,10 @@ function ajustarLayoutDesktop() {
   }
 }
 
+/**
+ * Formata o input de parcelas (ex: "1/12") enquanto o usuário digita.
+ * @param {InputEvent} evento O evento de input.
+ */
 function formatarInputDeParcela(evento) {
   let valor = evento.target.value.replace(/\D/g, '');
   if (valor.length > 4) valor = valor.slice(0, 4);
@@ -324,15 +400,26 @@ function formatarInputDeParcela(evento) {
   }
   evento.target.value = valor;
 }
+
+/**
+ * Mostra ou esconde o campo de informação de parcela baseado no tipo de conta selecionado.
+ * @param {Event} evento O evento (normalmente 'change') do elemento select.
+ */
 function alternarVisibilidadeInfoParcela(evento) {
   const seletor = evento.target;
   const formulario = seletor.closest('form');
   const campoInfoParcela = formulario.querySelector('[name="parcela_info"]');
   const grupoFormulario = formulario.querySelector('#grupo-editar-info-parcela');
   const deveExibir = seletor.value === 'PARCELADA';
+
   if (campoInfoParcela) campoInfoParcela.style.display = deveExibir ? 'block' : 'none';
   if (grupoFormulario) grupoFormulario.style.display = deveExibir ? 'block' : 'none';
 }
+
+/**
+ * Garante que um acordeão específico seja reaberto após uma ação (como reordenar).
+ * @param {string} nome O nome do terceiro no cabeçalho do acordeão a ser reaberto.
+ */
 function reabrirAcordeao(nome) {
   const todosCabecalhos = document.querySelectorAll('.acordeao-cabecalho');
   for (const cabecalho of todosCabecalhos) {
@@ -350,7 +437,11 @@ function reabrirAcordeao(nome) {
 // FUNÇÕES DE MANIPULAÇÃO DE DADOS (API)
 // ===================================================================================
 
+/**
+ * Função central que busca todos os dados de rendas e contas da API para o mês atual.
+ */
 async function carregarDadosDoPainel() {
+  // Flag para evitar carregamentos múltiplos e concorrentes.
   if (window.skipCarregarDados) {
     console.log('carregarDadosDoPainel bloqueado por skipCarregarDados');
     return;
@@ -362,8 +453,9 @@ async function carregarDadosDoPainel() {
     if (!rendas.sucesso || !todasAsContas.sucesso) {
       throw new Error(`Rendas: ${rendas.erro || 'OK'} | Contas: ${todasAsContas.erro || 'OK'}`);
     }
-    const contasProcessadas = processarRegrasDeNegocio(todasAsContas.dados);
-    renderizarPainel(rendas.dados, contasProcessadas);
+
+    // A função de processamento de regras foi removida para simplificar.
+    renderizarPainel(rendas.dados, todasAsContas.dados);
     carregarValorAppDoBanco();
     carregarAnotacao();
   } catch (erro) {
@@ -372,22 +464,12 @@ async function carregarDadosDoPainel() {
   }
 }
 
-function processarRegrasDeNegocio(listaDeContas) {
-  const limiteCasa = 350.0;
-  const nomeTerceiroCasa = 'Casa';
-  let contasProcessadas = JSON.parse(JSON.stringify(listaDeContas));
-  const gastosTerceiroCasa = contasProcessadas.filter((c) => c.nome_terceiro && c.nome_terceiro.toLowerCase() === nomeTerceiroCasa.toLowerCase());
-  const totalGastosCasa = gastosTerceiroCasa.reduce((soma, c) => soma + parseFloat(c.valor), 0);
-  const valorExcedente = totalGastosCasa > limiteCasa ? totalGastosCasa - limiteCasa : 0;
-  const indiceCasaPessoal = contasProcessadas.findIndex((c) => !c.nome_terceiro && c.descricao.toLowerCase() === nomeTerceiroCasa.toLowerCase());
-  if (indiceCasaPessoal !== -1) {
-    contasProcessadas[indiceCasaPessoal].valor = valorExcedente;
-  } else if (valorExcedente > 0) {
-    console.warn(`Aviso de Lógica: O excedente da 'Casa' (${formatarParaMoeda(valorExcedente)}) não foi alocado pois a conta pessoal 'Casa' não foi encontrada.`);
-  }
-  return contasProcessadas;
-}
-
+/**
+ * Renderiza o conteúdo do card especial para "Morr", "Mãe" ou "Vô".
+ * @param {string} nomeCard O nome do card (ex: 'morr').
+ * @param {Array} contasPessoais A lista de contas de lançamento direto para este card.
+ * @param {object} dadosTerceiro O objeto contendo os gastos de cartão deste terceiro.
+ */
 function renderizarCardExclusivo(nomeCard, contasPessoais, dadosTerceiro) {
   const nomeCardLower = nomeCard.toLowerCase();
   const containerTabela = document.querySelector(`#tabela-contas-${nomeCardLower}`);
@@ -406,6 +488,10 @@ function renderizarCardExclusivo(nomeCard, contasPessoais, dadosTerceiro) {
   }
 }
 
+/**
+ * Salva as alterações de um item (renda ou conta) após a edição no modal.
+ * @param {SubmitEvent} evento O evento de submissão do formulário de edição.
+ */
 async function salvarAlteracoes(evento) {
   evento.preventDefault();
   const formulario = evento.target;
@@ -429,6 +515,14 @@ async function salvarAlteracoes(evento) {
   }
 }
 
+/**
+ * Abre o modal de confirmação genérico com textos customizados.
+ * @param {object} config Objeto de configuração.
+ * @param {string} config.titulo Título do modal.
+ * @param {string} config.mensagem Mensagem de confirmação.
+ * @param {number|null} config.id ID do item a ser afetado.
+ * @param {string} config.tipo Tipo da ação a ser executada ('mes', 'copiar-mes', 'conta', 'renda').
+ */
 function abrirModalDeConfirmacao({ titulo, mensagem, id, tipo }) {
   document.getElementById('modal-confirmacao-titulo').textContent = titulo;
   document.getElementById('modal-confirmacao-mensagem').textContent = mensagem;
@@ -438,10 +532,15 @@ function abrirModalDeConfirmacao({ titulo, mensagem, id, tipo }) {
   abrirModal('modal-confirmacao');
 }
 
+/**
+ * Executa a ação de exclusão ou cópia confirmada no modal.
+ */
 async function executarExclusao() {
   const botaoConfirmar = document.getElementById('botao-executar-confirmacao');
   const id = botaoConfirmar.dataset.idParaExcluir;
   const tipo = botaoConfirmar.dataset.tipoParaExcluir;
+
+  // Lógica para deletar o mês inteiro
   if (tipo === 'mes') {
     try {
       const resposta = await fetch(`${BASE_URL}/api/deletar_mes.php`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mes_ano: MES_ANO_ATUAL }) });
@@ -459,6 +558,8 @@ async function executarExclusao() {
     }
     return;
   }
+
+  // Lógica para copiar o mês
   if (tipo === 'copiar-mes') {
     const dadosDoFormulario = new FormData();
     dadosDoFormulario.append('mes_ano_origem', MES_ANO_ATUAL);
@@ -487,6 +588,8 @@ async function executarExclusao() {
     }
     return;
   }
+
+  // Lógica para excluir um item individual
   if (!id || !tipo) return;
   const url = `${BASE_URL}/api/${tipo}s/excluir.php`;
   const dadosDoFormulario = new FormData();
@@ -506,23 +609,35 @@ async function executarExclusao() {
   }
 }
 
+/**
+ * Inicia o fluxo para exclusão do mês, abrindo o modal de confirmação.
+ */
 function iniciarExclusaoDeMes() {
   abrirModalDeConfirmacao({ titulo: 'Deletar Mês', mensagem: `Tem certeza que deseja deletar todas as rendas e contas de ${MES_ANO_ATUAL}? Esta ação não pode ser desfeita.`, id: null, tipo: 'mes' });
 }
 
+/**
+ * Troca a ordem de dois itens adjacentes (renda ou conta) na lista.
+ * @param {HTMLElement} elementoBotao O botão de mover (para cima ou para baixo) que foi clicado.
+ */
 async function reordenarItem(elementoBotao) {
   const direcao = elementoBotao.dataset.direcao;
   const linhaMovida = elementoBotao.closest('tr, li');
   const nomeTerceiroAcordeaoAberto = linhaMovida.closest('.acordeao-item')?.querySelector('.nome-terceiro')?.textContent || null;
   const itemAlvo = direcao === 'cima' ? linhaMovida.previousElementSibling : linhaMovida.nextElementSibling;
+
   if (!itemAlvo) return;
+
   const tipo = elementoBotao.dataset.tipo;
   const idMovido = elementoBotao.dataset.id;
   const ordemMovida = elementoBotao.dataset.ordem;
   const botaoAlvo = itemAlvo.querySelector(`.botao-acao-linha[data-acao='mover']`);
+
   if (!botaoAlvo) return;
+
   const idAlvo = botaoAlvo.dataset.id;
   const ordemAlvo = botaoAlvo.dataset.ordem;
+
   const url = `${BASE_URL}/api/lancamentos/reordenar.php`;
   const dadosDoFormulario = new FormData();
   dadosDoFormulario.append('tipo', tipo);
@@ -530,6 +645,7 @@ async function reordenarItem(elementoBotao) {
   dadosDoFormulario.append('ordem_movido', ordemMovida);
   dadosDoFormulario.append('id_alvo', idAlvo);
   dadosDoFormulario.append('ordem_alvo', ordemAlvo);
+
   try {
     const resposta = await fetch(url, { method: 'POST', body: dadosDoFormulario });
     const resultado = await resposta.json();
@@ -549,6 +665,10 @@ async function reordenarItem(elementoBotao) {
   }
 }
 
+/**
+ * Atualiza o status de uma conta (PAGA/PENDENTE) quando o checkbox é alterado.
+ * @param {Event} evento O evento de 'change' do checkbox.
+ */
 async function atualizarStatusDeConta(evento) {
   const checkbox = evento.target;
   const dadosDoFormulario = new FormData();
@@ -569,10 +689,18 @@ async function atualizarStatusDeConta(evento) {
   }
 }
 
+/**
+ * Inicia o fluxo para copiar os dados do mês atual para o próximo, abrindo o modal de confirmação.
+ */
 async function copiarContasParaProximoMes() {
   abrirModalDeConfirmacao({ titulo: 'Copiar Mês', mensagem: 'Deseja realmente copiar as contas fixas, parceladas, rendas e lançamentos Morr, Mãe e Vô para o próximo mês?', id: null, tipo: 'copiar-mes' });
 }
 
+/**
+ * Busca os dados de um item específico (renda ou conta) e preenche o modal de edição.
+ * @param {string} tipo O tipo do item ('conta' ou 'renda').
+ * @param {number} id O ID do item.
+ */
 async function abrirJanelaDeEdicao(tipo, id) {
   const url = `${BASE_URL}/api/${tipo}s/obter.php?id=${id}`;
   try {
@@ -584,8 +712,10 @@ async function abrirJanelaDeEdicao(tipo, id) {
       document.getElementById('campo-editar-tipo-item').value = tipo;
       document.getElementById('campo-editar-descricao').value = item.descricao;
       document.getElementById('campo-editar-valor').value = item.valor;
+
       const camposConta = document.getElementById('campos-conta-edicao');
       const camposRenda = document.getElementById('campos-renda-edicao');
+
       if (tipo === 'conta') {
         camposConta.style.display = 'block';
         camposRenda.style.display = 'none';
@@ -611,41 +741,58 @@ async function abrirJanelaDeEdicao(tipo, id) {
 // FUNÇÕES DE RENDERIZAÇÃO NA TELA (DOM)
 // ===================================================================================
 
+/**
+ * Função principal de renderização. Organiza todos os dados e chama as funções auxiliares para exibir no DOM.
+ * @param {Array} listaDeRendas Array com os objetos de rendas.
+ * @param {Array} listaDeTodasAsContas Array com todos os objetos de contas.
+ */
 function renderizarPainel(listaDeRendas, listaDeTodasAsContas) {
   const tiposExclusivos = ['MORR', 'MAE', 'VO'];
+
   const contasPessoaisPadrao = listaDeTodasAsContas.filter((c) => !c.nome_terceiro && !tiposExclusivos.includes(c.tipo));
   const contasPessoaisFixas = contasPessoaisPadrao.filter((c) => c.tipo === 'FIXA');
   const contasPessoaisVariaveis = contasPessoaisPadrao.filter((c) => c.tipo !== 'FIXA');
+
   const contasTipoMorr = listaDeTodasAsContas.filter((c) => c.tipo === 'MORR' && !c.nome_terceiro);
   const contasTipoMae = listaDeTodasAsContas.filter((c) => c.tipo === 'MAE' && !c.nome_terceiro);
   const contasTipoVo = listaDeTodasAsContas.filter((c) => c.tipo === 'VO' && !c.nome_terceiro);
+
   const contasDeTerceiros = listaDeTodasAsContas.filter((c) => c.nome_terceiro);
+
   const gastosDeTerceirosAgrupados = agruparGastosDeTerceiros(contasDeTerceiros);
   const totalContasVariaveis = contasPessoaisVariaveis.reduce((s, c) => s + parseFloat(c.valor), 0);
   const grupoDodo = { total: totalContasVariaveis, itens: contasPessoaisVariaveis };
   const gastosParaCartaoDeCredito = { Dodo: grupoDodo, ...gastosDeTerceirosAgrupados };
+
   preencherTabelaDeRendas(listaDeRendas);
   preencherTabelaDeContasPessoais(document.querySelector('#tabela-contas-fixas tbody'), contasPessoaisFixas);
   preencherTabelaDeContasPessoais(document.querySelector('#tabela-contas-variaveis tbody'), contasPessoaisVariaveis);
   preencherCartoesDeTerceiros(gastosParaCartaoDeCredito);
+
   renderizarCardExclusivo('morr', contasTipoMorr, gastosDeTerceirosAgrupados['Morr']);
   renderizarCardExclusivo('mae', contasTipoMae, gastosDeTerceirosAgrupados['Mãe']);
   renderizarCardExclusivo('vo', contasTipoVo, gastosDeTerceirosAgrupados['Vô']);
+
   const totalRendas = listaDeRendas.reduce((s, r) => s + parseFloat(r.valor), 0);
-  const totalContasPessoais = [...contasPessoaisPadrao].reduce((s, c) => s + parseFloat(c.valor || 0), 0);
+  const totalContasPessoais = contasPessoaisPadrao.reduce((s, c) => s + parseFloat(c.valor || 0), 0);
   const totalContasFixas = contasPessoaisFixas.reduce((s, c) => s + parseFloat(c.valor), 0);
   const totalCartaoDeCredito = Object.values(gastosParaCartaoDeCredito).reduce((s, g) => s + g.total, 0);
+
   const totalFinalMorr = contasTipoMorr.reduce((s, c) => s + parseFloat(c.valor), 0) + (gastosDeTerceirosAgrupados['Morr']?.total || 0);
   const totalFinalMae = contasTipoMae.reduce((s, c) => s + parseFloat(c.valor), 0) + (gastosDeTerceirosAgrupados['Mãe']?.total || 0);
   const totalFinalVo = contasTipoVo.reduce((s, c) => s + parseFloat(c.valor), 0) + (gastosDeTerceirosAgrupados['Vô']?.total || 0);
+
   atualizarResumoGeral(totalRendas, totalContasPessoais);
   atualizarTitulosDosCards(totalContasFixas, totalContasVariaveis, totalCartaoDeCredito, totalFinalMorr, totalFinalMae, totalFinalVo);
   vincularListenersDeStatusDasContas();
 }
 
+/**
+ * Agrupa as contas de terceiros pelo nome do terceiro e calcula o total para cada um.
+ * @param {Array} contasDeTerceiros A lista de contas que possuem um 'nome_terceiro'.
+ * @returns {object} Um objeto onde cada chave é um nome de terceiro e o valor é um objeto com {total, itens}.
+ */
 function agruparGastosDeTerceiros(contasDeTerceiros) {
-  const limiteCasa = 350.0;
-  const nomeTerceiroCasa = 'Casa';
   const agrupador = contasDeTerceiros.reduce((acc, conta) => {
     if (!acc[conta.nome_terceiro]) {
       acc[conta.nome_terceiro] = { total: 0, itens: [] };
@@ -654,17 +801,18 @@ function agruparGastosDeTerceiros(contasDeTerceiros) {
     acc[conta.nome_terceiro].itens.push(conta);
     return acc;
   }, {});
-  if (agrupador[nomeTerceiroCasa] && agrupador[nomeTerceiroCasa].total > limiteCasa) {
-    agrupador[nomeTerceiroCasa].total = limiteCasa;
-  }
   return agrupador;
 }
 
+/**
+ * Preenche uma tabela HTML com a lista de contas pessoais fornecida.
+ * @param {HTMLElement} corpoDaTabela O elemento `<tbody>` da tabela a ser preenchida.
+ * @param {Array} listaDeContas A lista de contas a serem exibidas.
+ */
 function preencherTabelaDeContasPessoais(corpoDaTabela, listaDeContas) {
   if (!corpoDaTabela) return;
   corpoDaTabela.innerHTML = '';
   listaDeContas.forEach((conta) => {
-    if (conta.valor <= 0 && conta.descricao.toLowerCase() === 'casa') return;
     const linha = corpoDaTabela.insertRow();
     linha.className = conta.status === 'PAGA' ? 'paga' : '';
     const infoParcela = conta.parcela_info ? ` (${escaparHtml(conta.parcela_info)})` : '';
@@ -674,18 +822,28 @@ function preencherTabelaDeContasPessoais(corpoDaTabela, listaDeContas) {
   });
 }
 
+/**
+ * Preenche a tabela de rendas dentro do modal de rendas.
+ * @param {Array} dadosDasRendas A lista de rendas a serem exibidas.
+ */
 function preencherTabelaDeRendas(dadosDasRendas) {
   const corpoDaTabela = document.querySelector('#modal-rendas #tabela-rendas tbody');
   if (!corpoDaTabela) return;
   corpoDaTabela.innerHTML = '';
   dadosDasRendas.forEach((renda) => {
     const linha = corpoDaTabela.insertRow();
-    linha.innerHTML = `<td>${escaparHtml(renda.descricao)}</td><td class="celula-com-acoes"><span>${formatarParaMoeda(renda.valor)}</span><div class="acoes-linha"><button class="botao-acao-linha" title="Mover para Cima" data-acao="mover" data-direcao="cima" data-tipo="renda" data-id="${renda.id}" data-ordem="${renda.ordem}">🔼</button><button class="botao-acao-linha" title="Mover para Baixo" data-acao="mover" data-direcao="baixo" data-tipo="renda" data-id="${renda.id}" data-ordem="${
+    linha.innerHTML = `<td>${escaparHtml(renda.descricao)}</td><td class="celula-com-acoes"><span>${formatarParaMoeda(renda.valor)}</span><div class="acoes-linha"><button class="botao-acao-linha" title="Mover para Cima" data-acao="mover" data-direcao="cima" data-tipo="renda" data-id="${renda.id}" data-ordem="${renda.ordem}">🔼</button><button class="botao-acao-linha" title="Mover para Baixo" data-acao="mover" data-direcao="baixo" data-tipo="renda" data-id="${
       renda.ordem
     }">🔽</button><button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="renda" data-id="${renda.id}">✏️</button><button class="botao-acao-linha" title="Excluir" data-acao="excluir" data-tipo="renda" data-id="${renda.id}">🗑️</button></div></td>`;
   });
 }
 
+/**
+ * Preenche o container de "Cartão de Crédito" com os acordeões dos gastos de terceiros.
+ * @param {object} gastos Objeto com os gastos de terceiros agrupados.
+ * @param {HTMLElement|null} container O elemento container onde os acordeões serão inseridos.
+ * @param {boolean} limparContainer Flag para limpar o container antes de inserir.
+ */
 function preencherCartoesDeTerceiros(gastos, container = null, limparContainer = true) {
   container = container || document.getElementById('cards-terceiros-container');
   if (!container) return;
@@ -714,12 +872,20 @@ function preencherCartoesDeTerceiros(gastos, container = null, limparContainer =
   }
 }
 
+/**
+ * Vincula o evento 'change' a todos os checkboxes de status de conta.
+ */
 function vincularListenersDeStatusDasContas() {
   document.querySelectorAll('.status-conta').forEach((e) => {
     e.addEventListener('change', atualizarStatusDeConta);
   });
 }
 
+/**
+ * Atualiza os valores nos cards de resumo do topo da página.
+ * @param {number} totalRendas Soma de todas as rendas.
+ * @param {number} totalContasPessoais Soma de todas as contas pessoais.
+ */
 function atualizarResumoGeral(totalRendas, totalContasPessoais) {
   const saldo = totalRendas - totalContasPessoais;
   document.getElementById('total-rendas').textContent = formatarParaMoeda(totalRendas);
@@ -728,9 +894,18 @@ function atualizarResumoGeral(totalRendas, totalContasPessoais) {
   document.getElementById('saldo-mes').style.color = saldo >= 0 ? 'var(--cor-sucesso)' : 'var(--cor-perigo)';
 }
 
-function atualizarTitulosDosCards(totalFixas, totalVariaveis, totalCartaoDeCredito, totalMorr, totalMae, totalVo) {
-  document.getElementById('total-contas-fixas').textContent = formatarParaMoeda(totalFixas);
-  document.getElementById('total-contas-variaveis').textContent = formatarParaMoeda(totalVariaveis);
+/**
+ * Atualiza os totais nos títulos dos cards do painel.
+ * @param {number} totalFixas Total das contas fixas.
+ * @param {number} totalVariaveis Total das contas variáveis.
+ * @param {number} totalCartaoDeCredito Total geral do cartão de crédito.
+ * @param {number} totalMorr Total do card "Morr".
+ * @param {number} totalMae Total do card "Mãe".
+ * @param {number} totalVo Total do card "Vô".
+ */
+function atualizarTitulosDosCards(totalContasFixas, totalContasVariaveis, totalCartaoDeCredito, totalMorr, totalMae, totalVo) {
+  document.getElementById('total-contas-fixas').textContent = formatarParaMoeda(totalContasFixas);
+  document.getElementById('total-contas-variaveis').textContent = formatarParaMoeda(totalContasVariaveis);
   document.getElementById('titulo-contas-terceiros').innerHTML = `Cartão de Crédito <span class="card-titulo-total">${formatarParaMoeda(totalCartaoDeCredito)}</span>`;
   document.getElementById('total-contas-morr').textContent = formatarParaMoeda(totalMorr);
   document.getElementById('total-contas-mae').textContent = formatarParaMoeda(totalMae);
@@ -741,32 +916,40 @@ function atualizarTitulosDosCards(totalFixas, totalVariaveis, totalCartaoDeCredi
 // FUNÇÕES UTILITÁRIAS
 // ===================================================================================
 
+/**
+ * Formata um valor numérico para o padrão de moeda brasileiro (BRL).
+ * @param {number|string} valor O valor a ser formatado.
+ * @returns {string} O valor formatado como string, ex: "R$ 1.234,56".
+ */
 function formatarParaMoeda(valor) {
   if (isNaN(parseFloat(valor))) return 'R$ 0,00';
   return parseFloat(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+/**
+ * Escapa caracteres HTML para prevenir XSS ao inserir texto no DOM.
+ * @param {string} texto O texto a ser escapado.
+ * @returns {string} O texto seguro para inserção no HTML.
+ */
 function escaparHtml(texto) {
   if (texto === null || texto === undefined) return '';
   const mapaDeCaracteres = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
   return String(texto).replace(/[&<>"']/g, (m) => mapaDeCaracteres[m]);
 }
 
+/**
+ * Converte uma string formatada como moeda para um formato numérico.
+ * @param {string} valorString A string a ser convertida (ex: "R$ 1.234,56").
+ * @returns {string} O valor como string numérica (ex: "1234.56").
+ */
 function limparFormatoMoeda(valorString) {
   if (typeof valorString !== 'string') {
-    return valorString;
+    return String(valorString);
   }
-  // Remove o prefixo "R$" e espaços
   let valorLimpo = valorString.replace('R$', '').trim();
-
-  // Verifica se o formato brasileiro (com vírgula como decimal) está sendo usado
   const usaVirgulaComoDecimal = valorLimpo.includes(',');
-
   if (usaVirgulaComoDecimal) {
-    // Remove os pontos de milhar e substitui a vírgula decimal por ponto
     valorLimpo = valorLimpo.replace(/\./g, '').replace(',', '.');
   }
-
-  // Garante que o resultado final seja um número válido em formato de string
   return valorLimpo.replace(/[^\d.]/g, '');
 }
