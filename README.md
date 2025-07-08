@@ -15,7 +15,6 @@ Permite o gerenciamento de contas a pagar, rendas e anotações mensais, com uma
 
 ## 📸 Screenshots
 
-_(Adicione aqui screenshots da sua aplicação para uma visualização melhor do projeto.)_
 
 - **Tela de Login:**
 
