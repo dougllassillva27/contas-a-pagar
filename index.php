@@ -9,7 +9,8 @@ $mes_ano_atual = $data_base->format('Y-m');
 $mes_ano_anterior = (clone $data_base)->modify('-1 month')->format('Y-m');
 $mes_ano_seguinte = (clone $data_base)->modify('+1 month')->format('Y-m');
 setlocale(LC_TIME, 'pt_BR.utf-8', 'pt_BR', 'portuguese');
-$nome_mes_atual = strftime('%B de %Y', $data_base->getTimestamp());
+$nome_mes_atual = strftime('%B/%Y', $data_base->getTimestamp());
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -59,7 +60,7 @@ $nome_mes_atual = strftime('%B de %Y', $data_base->getTimestamp());
                     </div>
                 </div>
             </div>
-            <button id="alternar-tema" class="botao-tema">🌓 Tema</button>
+            <button id="alternar-tema" class="botao-tema">🎨 Tema</button>
         </div>
     </header>
 
@@ -79,11 +80,17 @@ $nome_mes_atual = strftime('%B de %Y', $data_base->getTimestamp());
                 <h2 class="card-titulo">Anotações</h2>
                 <textarea id="area-anotacoes" class="area-anotacoes" placeholder="Digite suas anotações para este mês..."></textarea>
             </section>
-            <section class="card-painel">
-                <button class="acordeao-cabecalho card-titulo">
+            
+            <section class="card-painel acordeao-item abrir-em-desktop">
+                <div class="acordeao-cabecalho card-titulo" data-acao="alternar-acordeao">
                     <span class="nome-terceiro">Suas Contas Fixas</span>
-                    <strong id="total-contas-fixas" class="total-terceiro"></strong>
-                </button>
+                    <div class="cabecalho-direita">
+                        <strong id="total-contas-fixas" class="total-terceiro"></strong>
+                        <span class="icone-expandir">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+                        </span>
+                    </div>
+                </div>
                 <div class="acordeao-corpo">
                     <div class="acordeao-corpo-conteudo" style="padding: 0;">
                         <table id="tabela-contas-fixas" class="tabela-lancamentos" style="margin-top: 0;">
@@ -93,11 +100,17 @@ $nome_mes_atual = strftime('%B de %Y', $data_base->getTimestamp());
                     </div>
                 </div>
             </section>
-            <section class="card-painel">
-                <button class="acordeao-cabecalho card-titulo">
-                    <span class="nome-terceiro">Suas Contas Cartão de Crédito</span>
-                    <strong id="total-contas-variaveis" class="total-terceiro"></strong>
-                </button>
+
+            <section class="card-painel acordeao-item abrir-em-desktop">
+                <div class="acordeao-cabecalho card-titulo" data-acao="alternar-acordeao">
+                    <span class="nome-terceiro" >Suas Contas Cartão de Crédito</span>
+                     <div class="cabecalho-direita">
+                        <strong id="total-contas-variaveis" class="total-terceiro"></strong>
+                        <span class="icone-expandir">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+                        </span>
+                    </div>
+                </div>
                 <div class="acordeao-corpo">
                     <div class="acordeao-corpo-conteudo" style="padding: 0;">
                         <table id="tabela-contas-variaveis" class="tabela-lancamentos" style="margin-top: 0;">
@@ -107,6 +120,7 @@ $nome_mes_atual = strftime('%B de %Y', $data_base->getTimestamp());
                     </div>
                 </div>
             </section>
+
             <section class="card-painel">
                 <h2 class="card-titulo" id="titulo-contas-terceiros">Cartão de Crédito</h2>
                 <div class="linha-comparacao-app">
@@ -118,11 +132,16 @@ $nome_mes_atual = strftime('%B de %Y', $data_base->getTimestamp());
         </div>
 
         <div class="grid-lancamentos">
-            <section class="card-painel">
-                <button class="acordeao-cabecalho card-titulo">
+            <section class="card-painel acordeao-item abrir-em-desktop">
+                <div class="acordeao-cabecalho card-titulo" data-acao="alternar-acordeao">
                     <span class="nome-terceiro">Morr total mês <?= strftime('%B', $data_base->getTimestamp()) ?></span>
-                    <strong id="total-contas-morr" class="total-terceiro"></strong>
-                </button>
+                    <div class="cabecalho-direita">
+                        <strong id="total-contas-morr" class="total-terceiro"></strong>
+                        <span class="icone-expandir">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+                        </span>
+                    </div>
+                </div>
                 <div class="acordeao-corpo">
                     <div id="container-contas-morr" class="acordeao-corpo-conteudo" style="padding: 0 1rem 1rem 1rem;">
                         <div id="acordeao-terceiro-morr-container"></div>
@@ -134,11 +153,16 @@ $nome_mes_atual = strftime('%B de %Y', $data_base->getTimestamp());
                     </div>
                 </div>
             </section>
-            <section class="card-painel">
-                <button class="acordeao-cabecalho card-titulo">
+            <section class="card-painel acordeao-item abrir-em-desktop">
+                <div class="acordeao-cabecalho card-titulo" data-acao="alternar-acordeao">
                     <span class="nome-terceiro">Mãe total mês <?= strftime('%B', $data_base->getTimestamp()) ?></span>
-                    <strong id="total-contas-mae" class="total-terceiro"></strong>
-                </button>
+                    <div class="cabecalho-direita">
+                        <strong id="total-contas-mae" class="total-terceiro"></strong>
+                        <span class="icone-expandir">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+                        </span>
+                    </div>
+                </div>
                 <div class="acordeao-corpo">
                     <div id="container-contas-mae" class="acordeao-corpo-conteudo" style="padding: 0 1rem 1rem 1rem;">
                         <div id="acordeao-terceiro-mae-container"></div>
@@ -150,11 +174,16 @@ $nome_mes_atual = strftime('%B de %Y', $data_base->getTimestamp());
                     </div>
                 </div>
             </section>
-            <section class="card-painel">
-                <button class="acordeao-cabecalho card-titulo">
+            <section class="card-painel acordeao-item abrir-em-desktop">
+                <div class="acordeao-cabecalho card-titulo" data-acao="alternar-acordeao">
                     <span class="nome-terceiro">Vô total mês <?= strftime('%B', $data_base->getTimestamp()) ?></span>
-                    <strong id="total-contas-vo" class="total-terceiro"></strong>
-                </button>
+                    <div class="cabecalho-direita">
+                        <strong id="total-contas-vo" class="total-terceiro"></strong>
+                        <span class="icone-expandir">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+                        </span>
+                    </div>
+                </div>
                 <div class="acordeao-corpo">
                     <div id="container-contas-vo" class="acordeao-corpo-conteudo" style="padding: 0 1rem 1rem 1rem;">
                         <div id="acordeao-terceiro-vo-container"></div>
@@ -297,7 +326,29 @@ $nome_mes_atual = strftime('%B de %Y', $data_base->getTimestamp());
         </div>
     </div>
 
-    <script>const MES_ANO_ATUAL = '<?= $mes_ano_atual ?>'; const BASE_URL = '<?= $base ?>';</script>
+  <div id="modal-detalhes-cartao" class="modal-camada-externa" style="display:none;">
+    <div class="modal-conteudo modal-grande">
+      <header class="modal-cabecalho">
+        <h2 id="modal-detalhes-titulo">
+          Detalhes de Lançamentos – Dodo – <?= htmlspecialchars($mes_ano_atual) ?>
+        </h2>
+        <button class="modal-botao-fechar">×</button>
+      </header>
+      <div class="modal-corpo">
+        <div id="modal-detalhes-lista"></div>
+      </div>
+      <footer class="modal-rodape">
+        <div id="modal-detalhes-total" class="total-grande">
+          Total: R$ 0,00
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    const MES_ANO_ATUAL = '<?= $mes_ano_atual ?>';
+    const BASE_URL = '<?= $base ?>';
+  </script>
     <script src="<?= versao("$base/assets/js/script.js") ?>"></script>
 </body>
 </html>

@@ -23,6 +23,11 @@
  */
 
 // ===================================================================================
+// VARIÁVEIS GLOBAIS DE ESTADO
+// ===================================================================================
+let dadosAgrupadosCartao = {};
+
+// ===================================================================================
 // FUNÇÕES DE MANIPULAÇÃO DE FORMULÁRIOS
 // ===================================================================================
 
@@ -119,7 +124,6 @@ document.addEventListener('click', (evento) => {
 document.addEventListener('DOMContentLoaded', () => {
   vincularListenersDeEventosGlobais();
   carregarDadosDoPainel();
-  ajustarLayoutDesktop();
 
   // Lógica para alternância e persistência do tema (claro/escuro).
   const corpo = document.body;
@@ -154,30 +158,24 @@ function vincularListenersDeEventosGlobais() {
   adicionarListenerSeguro('form-nova-renda', 'submit', manipularSubmissaoDeNovoItem);
   adicionarListenerSeguro('form-nova-conta', 'submit', manipularSubmissaoDeNovoItem);
   adicionarListenerSeguro('formulario-edicao', 'submit', salvarAlteracoes);
-
   // Botões de ação do cabeçalho
   adicionarListenerSeguro('btn-copiar-mes', 'click', copiarContasParaProximoMes);
   adicionarListenerSeguro('btn-deletar-mes', 'click', iniciarExclusaoDeMes);
-
   // Abertura de modais
   adicionarListenerSeguro('botao-abrir-modal-lancamento', 'click', () => abrirModal('modal-lancamento'));
   adicionarListenerSeguro('card-total-rendas', 'click', () => abrirModal('modal-rendas'));
-
   // Campos de formulário com comportamento especial
   adicionarListenerSeguro('tipo-conta', 'change', alternarVisibilidadeInfoParcela);
   adicionarListenerSeguro('select-editar-tipo-conta', 'change', alternarVisibilidadeInfoParcela);
   adicionarListenerSeguro('parcela-info', 'input', formatarInputDeParcela);
   adicionarListenerSeguro('campo-editar-info-parcela', 'input', formatarInputDeParcela);
-
   // Modal de confirmação
   adicionarListenerSeguro('botao-cancelar-confirmacao', 'click', () => fecharModal('modal-confirmacao'));
   adicionarListenerSeguro('botao-executar-confirmacao', 'click', executarExclusao);
-
   // Anotações
   adicionarListenerSeguro('area-anotacoes', 'input', (evento) => {
     salvarAnotacaoDebounced(evento.target.value);
   });
-
   // Campo de conferência do valor do App do Cartão
   const campoValorApp = document.getElementById('valor-app-cartao');
   if (campoValorApp) {
@@ -230,7 +228,6 @@ function vincularListenersDeEventosGlobais() {
     localStorage.setItem('modo-tema', corpo.classList.contains('modo-dark') ? 'dark' : 'light');
     document.getElementById('dropdown-menu-acoes').classList.remove('visivel');
   });
-
   // Listeners para fechar modais
   document.querySelectorAll('.modal-botao-fechar').forEach((botao) => {
     botao.addEventListener('click', (evento) => {
@@ -245,13 +242,13 @@ function vincularListenersDeEventosGlobais() {
       }
     });
   });
-
   // Listener delegado para ações de linha (editar, excluir, mover) e acordeões
   document.body.addEventListener('click', (evento) => {
     const gatilhoAcao = evento.target.closest('.botao-acao-linha');
-    const cabecalhoAcordeao = evento.target.closest('.acordeao-cabecalho');
+    const alvoAcordeao = evento.target.closest('[data-acao]');
+
     if (gatilhoAcao) {
-      evento.stopPropagation(); // Impede que o clique no botão acione o acordeão
+      evento.stopPropagation();
       const { acao, tipo, id } = gatilhoAcao.dataset;
       if (acao === 'editar') {
         abrirJanelaDeEdicao(tipo, id);
@@ -265,8 +262,15 @@ function vincularListenersDeEventosGlobais() {
       } else if (acao === 'mover') {
         reordenarItem(gatilhoAcao);
       }
-    } else if (cabecalhoAcordeao) {
-      alternarVisibilidadeAcordeao(cabecalhoAcordeao);
+    } else if (alvoAcordeao) {
+      const acao = alvoAcordeao.dataset.acao;
+      if (acao === 'alternar-acordeao') {
+        const cabecalho = alvoAcordeao.closest('.acordeao-cabecalho');
+        if (cabecalho) alternarVisibilidadeAcordeao(cabecalho);
+      } else if (acao === 'ver-detalhes') {
+        const nome = alvoAcordeao.dataset.nomeTerceiro;
+        if (nome) abrirModalDetalhesCartao(nome);
+      }
     }
   });
 }
@@ -369,21 +373,34 @@ function fecharModal(seletor) {
  */
 function alternarVisibilidadeAcordeao(cabecalho) {
   cabecalho.classList.toggle('ativo');
-  const corpo = cabecalho.nextElementSibling;
-  corpo.classList.toggle('visivel');
+  const corpo = cabecalho.closest('.acordeao-item').querySelector('.acordeao-corpo');
+  if (corpo) {
+    corpo.classList.toggle('visivel');
+  }
 }
 
 /**
- * Abre todos os acordeões por padrão em telas maiores (desktop).
+ * Garante que um acordeão seja aberto, adicionando as classes necessárias.
+ * @param {HTMLElement} cabecalho O elemento do cabeçalho do acordeão.
+ */
+function abrirAcordeao(cabecalho) {
+  if (!cabecalho.classList.contains('ativo')) {
+    cabecalho.classList.add('ativo');
+    const corpo = cabecalho.closest('.acordeao-item').querySelector('.acordeao-corpo');
+    if (corpo) {
+      corpo.classList.add('visivel');
+    }
+  }
+}
+
+/**
+ * Abre os acordeões de primeiro nível marcados por padrão em telas maiores (desktop).
  */
 function ajustarLayoutDesktop() {
   const larguraDaTela = window.innerWidth;
   if (larguraDaTela > 768) {
-    const todosOsAcordeoes = document.querySelectorAll('.acordeao-cabecalho');
-    todosOsAcordeoes.forEach((cabecalho) => {
-      if (!cabecalho.classList.contains('ativo')) {
-        alternarVisibilidadeAcordeao(cabecalho);
-      }
+    document.querySelectorAll('.abrir-em-desktop > .acordeao-cabecalho').forEach((cabecalho) => {
+      abrirAcordeao(cabecalho);
     });
   }
 }
@@ -411,7 +428,6 @@ function alternarVisibilidadeInfoParcela(evento) {
   const campoInfoParcela = formulario.querySelector('[name="parcela_info"]');
   const grupoFormulario = formulario.querySelector('#grupo-editar-info-parcela');
   const deveExibir = seletor.value === 'PARCELADA';
-
   if (campoInfoParcela) campoInfoParcela.style.display = deveExibir ? 'block' : 'none';
   if (grupoFormulario) grupoFormulario.style.display = deveExibir ? 'block' : 'none';
 }
@@ -433,6 +449,98 @@ function reabrirAcordeao(nome) {
   }
 }
 
+/**
+ * Abre um modal grande e dinâmico para exibir os detalhes de uma categoria do cartão.
+ * A altura e largura do modal se adaptam à quantidade de itens.
+ * @param {string} nomeTerceiro O nome da categoria a ser exibida.
+ */
+function abrirModalDetalhesCartao(nomeTerceiro) {
+  const chaveDeDados = nomeTerceiro.replace(' cartão', '');
+  const dados = dadosAgrupadosCartao[chaveDeDados];
+
+  if (!dados) {
+    console.error(`Dados para '${chaveDeDados}' não encontrados.`);
+    return;
+  }
+
+  const modalContent = document.querySelector('#modal-detalhes-cartao .modal-conteudo');
+  const modalTitulo = document.getElementById('modal-detalhes-titulo');
+  const modalLista = document.getElementById('modal-detalhes-lista');
+  const modalTotal = document.getElementById('modal-detalhes-total');
+
+  // 1. Formata Título e Total
+  const [ano, mes] = MES_ANO_ATUAL.split('-');
+  const dataTitulo = new Date(ano, mes - 1);
+  const mesFormatado = dataTitulo.toLocaleString('pt-BR', { month: 'long' });
+  const tituloMesAno = `${mesFormatado.charAt(0).toUpperCase() + mesFormatado.slice(1)}/${ano}`;
+
+  modalTitulo.textContent = `Lançamentos cartão de crédito - ${nomeTerceiro} - ${tituloMesAno}`;
+  modalTotal.textContent = `Total: ${formatarParaMoeda(dados.total)}`;
+
+  // 2. Limpa a lista anterior
+  modalLista.innerHTML = '';
+  console.log(`[LOG] Lista limpa. Total de itens a renderizar: ${dados.itens.length}`);
+
+  // 3. Cria colunas manualmente com Flexbox
+  const LIMITE_PARA_DUAS_COLUNAS = 20;
+  const totalItens = dados.itens.length;
+  console.log(`[LOG] Total de itens: ${totalItens}, LIMITE_PARA_DUAS_COLUNAS: ${LIMITE_PARA_DUAS_COLUNAS}`);
+
+  if (totalItens > LIMITE_PARA_DUAS_COLUNAS) {
+    modalLista.classList.add('layout-duas-colunas-flex');
+    const metade = Math.ceil(totalItens / 2);
+    const coluna1 = document.createElement('div');
+    const coluna2 = document.createElement('div');
+    coluna1.className = 'coluna-detalhes';
+    coluna2.className = 'coluna-detalhes';
+    modalLista.appendChild(coluna1);
+    modalLista.appendChild(coluna2);
+
+    dados.itens.slice(0, metade).forEach((item, indice) => {
+      const infoParcela = item.parcela_info ? ` (${escaparHtml(item.parcela_info)})` : '';
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'detalhe-item';
+      itemDiv.innerHTML = `<span>${escaparHtml(item.descricao)}${infoParcela}</span><strong>${formatarParaMoeda(item.valor)}</strong>`;
+      coluna1.appendChild(itemDiv);
+      if ((indice + 1) % 10 === 0 || indice === metade - 1) {
+        console.log(`[LOG] Coluna 1 - Item ${indice + 1} renderizado. Total na coluna: ${coluna1.children.length}`);
+      }
+    });
+
+    dados.itens.slice(metade).forEach((item, indice) => {
+      const infoParcela = item.parcela_info ? ` (${escaparHtml(item.parcela_info)})` : '';
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'detalhe-item';
+      itemDiv.innerHTML = `<span>${escaparHtml(item.descricao)}${infoParcela}</span><strong>${formatarParaMoeda(item.valor)}</strong>`;
+      coluna2.appendChild(itemDiv);
+      if ((indice + 1) % 10 === 0 || indice === totalItens - metade - 1) {
+        console.log(`[LOG] Coluna 2 - Item ${indice + 1} renderizado. Total na coluna: ${coluna2.children.length}`);
+      }
+    });
+    console.log('[LOG] Layout de duas colunas aplicado com Flexbox.');
+  } else {
+    dados.itens.forEach((item, indice) => {
+      const infoParcela = item.parcela_info ? ` (${escaparHtml(item.parcela_info)})` : '';
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'detalhe-item';
+      itemDiv.innerHTML = `<span>${escaparHtml(item.descricao)}${infoParcela}</span><strong>${formatarParaMoeda(item.valor)}</strong>`;
+      modalLista.appendChild(itemDiv);
+      if ((indice + 1) % 10 === 0 || indice === totalItens - 1) {
+        console.log(`[LOG] Item ${indice + 1} renderizado. Total até agora: ${modalLista.querySelectorAll('.detalhe-item').length}`);
+      }
+    });
+    modalLista.classList.remove('layout-duas-colunas-flex');
+    console.log('[LOG] Layout de uma coluna mantido.');
+  }
+
+  // 5. Verifica o DOM após renderização
+  const itensRenderizados = modalLista.querySelectorAll('.detalhe-item').length;
+  console.log(`[LOG] Itens renderizados no DOM: ${itensRenderizados}`);
+
+  // 6. Finalmente, abre o modal
+  abrirModal('modal-detalhes-cartao');
+}
+
 // ===================================================================================
 // FUNÇÕES DE MANIPULAÇÃO DE DADOS (API)
 // ===================================================================================
@@ -441,7 +549,6 @@ function reabrirAcordeao(nome) {
  * Função central que busca todos os dados de rendas e contas da API para o mês atual.
  */
 async function carregarDadosDoPainel() {
-  // Flag para evitar carregamentos múltiplos e concorrentes.
   if (window.skipCarregarDados) {
     console.log('carregarDadosDoPainel bloqueado por skipCarregarDados');
     return;
@@ -454,7 +561,6 @@ async function carregarDadosDoPainel() {
       throw new Error(`Rendas: ${rendas.erro || 'OK'} | Contas: ${todasAsContas.erro || 'OK'}`);
     }
 
-    // A função de processamento de regras foi removida para simplificar.
     renderizarPainel(rendas.dados, todasAsContas.dados);
     carregarValorAppDoBanco();
     carregarAnotacao();
@@ -474,12 +580,10 @@ function renderizarCardExclusivo(nomeCard, contasPessoais, dadosTerceiro) {
   const nomeCardLower = nomeCard.toLowerCase();
   const containerTabela = document.querySelector(`#tabela-contas-${nomeCardLower}`);
   const containerAcordeao = document.getElementById(`acordeao-terceiro-${nomeCardLower}-container`);
-
   if (!containerTabela || !containerAcordeao) return;
 
   preencherTabelaDeContasPessoais(containerTabela.querySelector('tbody'), contasPessoais);
   containerAcordeao.innerHTML = '';
-
   if (dadosTerceiro && dadosTerceiro.itens.length > 0) {
     const nomeCapitalizado = nomeCard.charAt(0).toUpperCase() + nomeCard.slice(1);
     const tituloAcordeao = `${nomeCapitalizado} cartão`;
@@ -539,7 +643,6 @@ async function executarExclusao() {
   const botaoConfirmar = document.getElementById('botao-executar-confirmacao');
   const id = botaoConfirmar.dataset.idParaExcluir;
   const tipo = botaoConfirmar.dataset.tipoParaExcluir;
-
   // Lógica para deletar o mês inteiro
   if (tipo === 'mes') {
     try {
@@ -715,7 +818,6 @@ async function abrirJanelaDeEdicao(tipo, id) {
 
       const camposConta = document.getElementById('campos-conta-edicao');
       const camposRenda = document.getElementById('campos-renda-edicao');
-
       if (tipo === 'conta') {
         camposConta.style.display = 'block';
         camposRenda.style.display = 'none';
@@ -742,7 +844,8 @@ async function abrirJanelaDeEdicao(tipo, id) {
 // ===================================================================================
 
 /**
- * Função principal de renderização. Organiza todos os dados e chama as funções auxiliares para exibir no DOM.
+ * Função principal de renderização.
+ * Organiza todos os dados e chama as funções auxiliares para exibir no DOM.
  * @param {Array} listaDeRendas Array com os objetos de rendas.
  * @param {Array} listaDeTodasAsContas Array com todos os objetos de contas.
  */
@@ -752,7 +855,6 @@ function renderizarPainel(listaDeRendas, listaDeTodasAsContas) {
   const contasPessoaisPadrao = listaDeTodasAsContas.filter((c) => !c.nome_terceiro && !tiposExclusivos.includes(c.tipo));
   const contasPessoaisFixas = contasPessoaisPadrao.filter((c) => c.tipo === 'FIXA');
   const contasPessoaisVariaveis = contasPessoaisPadrao.filter((c) => c.tipo !== 'FIXA');
-
   const contasTipoMorr = listaDeTodasAsContas.filter((c) => c.tipo === 'MORR' && !c.nome_terceiro);
   const contasTipoMae = listaDeTodasAsContas.filter((c) => c.tipo === 'MAE' && !c.nome_terceiro);
   const contasTipoVo = listaDeTodasAsContas.filter((c) => c.tipo === 'VO' && !c.nome_terceiro);
@@ -762,12 +864,13 @@ function renderizarPainel(listaDeRendas, listaDeTodasAsContas) {
   const gastosDeTerceirosAgrupados = agruparGastosDeTerceiros(contasDeTerceiros);
   const totalContasVariaveis = contasPessoaisVariaveis.reduce((s, c) => s + parseFloat(c.valor), 0);
   const grupoDodo = { total: totalContasVariaveis, itens: contasPessoaisVariaveis };
-  const gastosParaCartaoDeCredito = { Dodo: grupoDodo, ...gastosDeTerceirosAgrupados };
+
+  dadosAgrupadosCartao = { Dodo: grupoDodo, ...gastosDeTerceirosAgrupados };
 
   preencherTabelaDeRendas(listaDeRendas);
   preencherTabelaDeContasPessoais(document.querySelector('#tabela-contas-fixas tbody'), contasPessoaisFixas);
   preencherTabelaDeContasPessoais(document.querySelector('#tabela-contas-variaveis tbody'), contasPessoaisVariaveis);
-  preencherCartoesDeTerceiros(gastosParaCartaoDeCredito);
+  preencherCartoesDeTerceiros(dadosAgrupadosCartao, document.getElementById('cards-terceiros-container'), true, true);
 
   renderizarCardExclusivo('morr', contasTipoMorr, gastosDeTerceirosAgrupados['Morr']);
   renderizarCardExclusivo('mae', contasTipoMae, gastosDeTerceirosAgrupados['Mãe']);
@@ -776,8 +879,7 @@ function renderizarPainel(listaDeRendas, listaDeTodasAsContas) {
   const totalRendas = listaDeRendas.reduce((s, r) => s + parseFloat(r.valor), 0);
   const totalContasPessoais = contasPessoaisPadrao.reduce((s, c) => s + parseFloat(c.valor || 0), 0);
   const totalContasFixas = contasPessoaisFixas.reduce((s, c) => s + parseFloat(c.valor), 0);
-  const totalCartaoDeCredito = Object.values(gastosParaCartaoDeCredito).reduce((s, g) => s + g.total, 0);
-
+  const totalCartaoDeCredito = Object.values(dadosAgrupadosCartao).reduce((s, g) => s + g.total, 0);
   const totalFinalMorr = contasTipoMorr.reduce((s, c) => s + parseFloat(c.valor), 0) + (gastosDeTerceirosAgrupados['Morr']?.total || 0);
   const totalFinalMae = contasTipoMae.reduce((s, c) => s + parseFloat(c.valor), 0) + (gastosDeTerceirosAgrupados['Mãe']?.total || 0);
   const totalFinalVo = contasTipoVo.reduce((s, c) => s + parseFloat(c.valor), 0) + (gastosDeTerceirosAgrupados['Vô']?.total || 0);
@@ -785,6 +887,8 @@ function renderizarPainel(listaDeRendas, listaDeTodasAsContas) {
   atualizarResumoGeral(totalRendas, totalContasPessoais);
   atualizarTitulosDosCards(totalContasFixas, totalContasVariaveis, totalCartaoDeCredito, totalFinalMorr, totalFinalMae, totalFinalVo);
   vincularListenersDeStatusDasContas();
+
+  ajustarLayoutDesktop();
 }
 
 /**
@@ -818,7 +922,7 @@ function preencherTabelaDeContasPessoais(corpoDaTabela, listaDeContas) {
     const infoParcela = conta.parcela_info ? ` (${escaparHtml(conta.parcela_info)})` : '';
     linha.innerHTML = `<td><input type="checkbox" class="status-conta" data-id="${conta.id}" ${conta.status === 'PAGA' ? 'checked' : ''}></td><td>${escaparHtml(conta.descricao)}${infoParcela}</td><td class="celula-com-acoes"><span>${formatarParaMoeda(conta.valor)}</span><div class="acoes-linha"><button class="botao-acao-linha" title="Mover para Cima" data-acao="mover" data-direcao="cima" data-tipo="conta" data-id="${conta.id}" data-ordem="${
       conta.ordem
-    }">🔼</button><button class="botao-acao-linha" title="Mover para Baixo" data-acao="mover" data-direcao="baixo" data-tipo="conta" data-id="${conta.id}" data-ordem="${conta.ordem}">🔽</button><button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="conta" data-id="${conta.id}">✏️</button><button class="botao-acao-linha" title="Excluir" data-acao="excluir" data-tipo="conta" data-id="${conta.id}">🗑️</button></div></td>`;
+    }">&#128314;</button><button class="botao-acao-linha" title="Mover para Baixo" data-acao="mover" data-direcao="baixo" data-tipo="conta" data-id="${conta.id}" data-ordem="${conta.ordem}">&#128315;</button><button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="conta" data-id="${conta.id}">&#9998;&#65039;</button><button class="botao-acao-linha" title="Excluir" data-acao="excluir" data-tipo="conta" data-id="${conta.id}">&#128467;&#65039;</button></div></td>`;
   });
 }
 
@@ -832,19 +936,20 @@ function preencherTabelaDeRendas(dadosDasRendas) {
   corpoDaTabela.innerHTML = '';
   dadosDasRendas.forEach((renda) => {
     const linha = corpoDaTabela.insertRow();
-    linha.innerHTML = `<td>${escaparHtml(renda.descricao)}</td><td class="celula-com-acoes"><span>${formatarParaMoeda(renda.valor)}</span><div class="acoes-linha"><button class="botao-acao-linha" title="Mover para Cima" data-acao="mover" data-direcao="cima" data-tipo="renda" data-id="${renda.id}" data-ordem="${renda.ordem}">🔼</button><button class="botao-acao-linha" title="Mover para Baixo" data-acao="mover" data-direcao="baixo" data-tipo="renda" data-id="${
+    linha.innerHTML = `<td>${escaparHtml(renda.descricao)}</td><td class="celula-com-acoes"><span>${formatarParaMoeda(renda.valor)}</span><div class="acoes-linha"><button class="botao-acao-linha" title="Mover para Cima" data-acao="mover" data-direcao="cima" data-tipo="renda" data-id="${renda.id}" data-ordem="${renda.ordem}">&#128314;</button><button class="botao-acao-linha" title="Mover para Baixo" data-acao="mover" data-direcao="baixo" data-tipo="renda" data-id="${
       renda.ordem
-    }">🔽</button><button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="renda" data-id="${renda.id}">✏️</button><button class="botao-acao-linha" title="Excluir" data-acao="excluir" data-tipo="renda" data-id="${renda.id}">🗑️</button></div></td>`;
+    }">&#128315;</button><button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="renda" data-id="${renda.id}">&#9998;&#65039;</button><button class="botao-acao-linha" title="Excluir" data-acao="excluir" data-tipo="renda" data-id="${renda.id}">&#128467;&#65039;</button></div></td>`;
   });
 }
 
 /**
- * Preenche o container de "Cartão de Crédito" com os acordeões dos gastos de terceiros.
+ * Preenche o container com os acordeões dos gastos de terceiros.
  * @param {object} gastos Objeto com os gastos de terceiros agrupados.
  * @param {HTMLElement|null} container O elemento container onde os acordeões serão inseridos.
  * @param {boolean} limparContainer Flag para limpar o container antes de inserir.
+ * @param {boolean} comBotaoDetalhes Flag para renderizar o botão de ver detalhes.
  */
-function preencherCartoesDeTerceiros(gastos, container = null, limparContainer = true) {
+function preencherCartoesDeTerceiros(gastos, container = null, limparContainer = true, comBotaoDetalhes = false) {
   container = container || document.getElementById('cards-terceiros-container');
   if (!container) return;
   if (limparContainer) {
@@ -862,12 +967,31 @@ function preencherCartoesDeTerceiros(gastos, container = null, limparContainer =
         (item) =>
           `<li data-id="${item.id}" data-ordem="${item.ordem}"><span>${escaparHtml(item.descricao)}${item.parcela_info ? ` (${escaparHtml(item.parcela_info)})` : ''}: <strong>${formatarParaMoeda(item.valor)}</strong></span><div class="acoes-linha"><button class="botao-acao-linha" title="Mover para Cima" data-acao="mover" data-direcao="cima" data-tipo="conta" data-id="${item.id}" data-ordem="${
             item.ordem
-          }">🔼</button><button class="botao-acao-linha" title="Mover para Baixo" data-acao="mover" data-direcao="baixo" data-tipo="conta" data-id="${item.id}" data-ordem="${item.ordem}">🔽</button><button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="conta" data-id="${item.id}">✏️</button><button class="botao-acao-linha" title="Excluir" data-acao="excluir" data-tipo="conta" data-id="${item.id}">🗑️</button></div></li>`
+          }">&#128314;</button><button class="botao-acao-linha" title="Mover para Baixo" data-acao="mover" data-direcao="baixo" data-tipo="conta" data-id="${item.id}" data-ordem="${item.ordem}">&#128315;</button><button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="conta" data-id="${item.id}">&#9998;&#65039;</button><button class="botao-acao-linha" title="Excluir" data-acao="excluir" data-tipo="conta" data-id="${item.id}">&#128467;&#65039;</button></div></li>`
       )
       .join('');
+
+    const iconeHtml = comBotaoDetalhes
+      ? `<button class="icone-expandir icone-detalhes" title="Ver todos os detalhes" data-acao="ver-detalhes" data-nome-terceiro="${escaparHtml(nome)}">
+           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>
+         </button>`
+      : `<span class="icone-expandir">
+           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+         </span>`;
+
     const itemAcordeao = document.createElement('div');
     itemAcordeao.className = 'acordeao-item';
-    itemAcordeao.innerHTML = `<button class="acordeao-cabecalho"><span class="nome-terceiro">${escaparHtml(nome)}</span><strong class="total-terceiro">${formatarParaMoeda(dados.total)}</strong></button><div class="acordeao-corpo"><div class="acordeao-corpo-conteudo"><ul>${htmlDosItens}</ul></div></div>`;
+    itemAcordeao.innerHTML = `
+      <div class="acordeao-cabecalho" data-acao="alternar-acordeao">
+        ${iconeHtml}
+        <span class="nome-terceiro">${escaparHtml(nome)}</span>
+        <div class="cabecalho-direita">
+          <strong class="total-terceiro">${formatarParaMoeda(dados.total)}</strong>
+        </div>
+      </div>
+      <div class="acordeao-corpo">
+        <div class="acordeao-corpo-conteudo"><ul>${htmlDosItens}</ul></div>
+      </div>`;
     container.appendChild(itemAcordeao);
   }
 }
@@ -896,8 +1020,8 @@ function atualizarResumoGeral(totalRendas, totalContasPessoais) {
 
 /**
  * Atualiza os totais nos títulos dos cards do painel.
- * @param {number} totalFixas Total das contas fixas.
- * @param {number} totalVariaveis Total das contas variáveis.
+ * @param {number} totalContasFixas Total das contas fixas.
+ * @param {number} totalContasVariaveis Total das contas variáveis.
  * @param {number} totalCartaoDeCredito Total geral do cartão de crédito.
  * @param {number} totalMorr Total do card "Morr".
  * @param {number} totalMae Total do card "Mãe".

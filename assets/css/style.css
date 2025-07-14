@@ -258,15 +258,14 @@ body {
 }
 
 .card-titulo {
-  margin-top: 0;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--cor-borda);
-  font-size: 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.5rem;
+  margin-top: 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--cor-borda);
 }
 
 .card-titulo-total {
@@ -281,6 +280,13 @@ body {
   margin: 1.5rem 0 0.5rem 0;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--cor-borda);
+}
+
+.cabecalho-direita {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-right: 1rem;
 }
 
 /* ===================================================================================
@@ -443,29 +449,44 @@ tr.paga td {
   width: 100%;
   background-color: transparent;
   border: none;
-  padding: 1rem;
+  padding: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  cursor: pointer;
+  cursor: default;
   font-family: var(--fonte-principal);
   font-size: 1rem;
   font-weight: 600;
   text-align: left;
-  gap: 1rem;
+  gap: 0;
+  flex-wrap: nowrap;
 }
 
 .acordeao-cabecalho:hover {
+  background-color: transparent;
+}
+
+.acordeao-cabecalho .nome-terceiro,
+.acordeao-cabecalho .total-terceiro {
+  cursor: pointer;
+  padding: 1rem;
+  flex-shrink: 0;
+}
+
+.acordeao-cabecalho .nome-terceiro:hover,
+.acordeao-cabecalho .total-terceiro:hover {
   background-color: var(--cor-fundo);
 }
 
 .acordeao-cabecalho .nome-terceiro {
   color: var(--cor-texto-principal);
-  flex: 1;
+  flex-grow: 1;
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding-left: 1rem;
+  text-align: left;
 }
 
 .acordeao-cabecalho .total-terceiro {
@@ -474,14 +495,26 @@ tr.paga td {
 }
 
 .acordeao-cabecalho::after {
-  content: '▼';
-  font-size: 0.8rem;
-  color: var(--cor-texto-secundario);
-  transition: transform 0.3s ease;
+  display: none;
 }
 
-.acordeao-cabecalho.ativo::after {
-  transform: rotate(180deg);
+.icone-expandir {
+  opacity: 0.6;
+  margin-right: 0;
+  padding: 0.5rem;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.icone-expandir:hover {
+  opacity: 1;
+  background-color: var(--cor-fundo);
+}
+
+.icone-expandir svg {
+  display: block;
 }
 
 .acordeao-corpo {
@@ -522,7 +555,6 @@ tr.paga td {
 /* ===================================================================================
 // ESTILOS DE MODAIS
 // =================================================================================== */
-
 .modal-camada-externa {
   position: fixed;
   top: 0;
@@ -588,59 +620,58 @@ tr.paga td {
   color: var(--cor-texto-principal);
 }
 
-.modal-corpo form {
-  margin: 0;
-}
-
-.grupo-formulario {
-  margin-bottom: 1rem;
-}
-
-.grupo-formulario label {
-  display: block;
-  font-weight: 500;
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-  color: var(--cor-texto-principal);
-}
-
-.container-botoes-confirmacao {
+/* ESTADO PADRÃO E FIXO (lista em uma coluna) */
+.modal-conteudo.modal-grande {
+  max-height: 95vh;
   display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1.5rem;
+  flex-direction: column;
+  width: 900px; /* Largura fixa */
+  max-width: 95vw; /* Limite máximo para telas menores */
+  height: 95vh; /* Altura fixa */
+  margin: 0 auto; /* Centraliza o modal */
 }
 
-.botao-secundario {
-  background-color: var(--cor-borda);
-  color: var(--cor-texto-principal);
+.modal-grande .modal-corpo {
+  overflow-y: auto; /* Adiciona rolagem vertical se necessário */
+  padding: 0;
+  flex-grow: 1;
 }
 
-.botao-secundario:hover {
-  background-color: #d1d5db;
-}
-
-.botao-perigo {
-  background-color: var(--cor-perigo);
-}
-
-.botao-perigo:hover {
-  background-color: var(--cor-perigo-hover);
-}
-
-.notificacao {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
+#modal-detalhes-lista {
   padding: 1rem 1.5rem;
-  background-color: var(--cor-sucesso);
-  color: var(--cor-texto-principal);
-  border-radius: var(--raio-borda);
-  box-shadow: var(--sombra-card);
-  font-size: 0.9rem;
-  font-weight: 500;
-  z-index: 2000;
-  animation: fadeIn 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.detalhe-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.detalhe-item span {
+  flex-grow: 1;
+  word-break: break-word;
+  padding-right: 1rem;
+}
+
+.detalhe-item strong {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.modal-rodape {
+  border-top: 1px solid var(--cor-borda);
+  padding: 1rem 1.5rem;
+  text-align: right;
+  background-color: var(--cor-fundo);
+}
+
+.total-grande {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--cor-principal);
 }
 
 /* ===================================================================================
@@ -700,6 +731,7 @@ tr.paga td {
   position: relative;
   display: none;
 }
+
 .botao-menu-acoes {
   font-size: 1.5rem;
   font-weight: bold;
@@ -710,6 +742,7 @@ tr.paga td {
   line-height: 1;
   color: var(--cor-texto-secundario);
 }
+
 .dropdown-menu-acoes {
   display: none;
   position: absolute;
@@ -723,9 +756,11 @@ tr.paga td {
   min-width: 180px;
   overflow: hidden;
 }
+
 .dropdown-menu-acoes.visivel {
   display: block;
 }
+
 .dropdown-menu-acoes a {
   color: var(--cor-texto-principal);
   padding: 0.75rem 1rem;
@@ -734,6 +769,7 @@ tr.paga td {
   font-size: 0.9rem;
   white-space: nowrap;
 }
+
 .dropdown-menu-acoes a:hover {
   background-color: var(--cor-fundo);
 }
@@ -847,15 +883,18 @@ tr.paga td {
   border-top: 1px solid var(--cor-borda);
   background-color: var(--cor-fundo);
 }
+
 .rodape-principal p {
   margin: 0;
 }
+
 .rodape-principal a {
   color: var(--cor-texto-principal);
   font-weight: 500;
   text-decoration: none;
   transition: color 0.2s;
 }
+
 .rodape-principal a:hover {
   color: var(--cor-principal);
 }
