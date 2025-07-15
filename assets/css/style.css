@@ -73,6 +73,10 @@ body {
   line-height: 1.6;
 }
 
+body.travamento-rolagem-modal {
+  overflow: hidden;
+}
+
 /* ===================================================================================
 // CABEÇALHO PRINCIPAL
 // =================================================================================== */
@@ -410,15 +414,28 @@ tr.paga td {
   background: none;
   border: none;
   padding: 0.25rem;
-  opacity: 0.4;
   cursor: pointer;
-  transition: opacity 0.2s;
-  text-decoration: none !important;
-  font-size: 0.8rem;
+  transition: color 0.2s; /* Mude a transição para a cor */
+  color: var(--cor-texto-secundario); /* Cor inicial do ícone */
+  opacity: 0.7; /* Podemos manter uma leve opacidade ou remover */
 }
 
 .botao-acao-linha:hover {
-  opacity: 1;
+  opacity: 1; /* Opacidade total no hover */
+  color: var(--cor-principal); /* Muda a cor do ícone para a cor principal */
+}
+
+/* Efeito específico para o botão de excluir */
+.botao-acao-linha[data-acao='excluir']:hover {
+  color: var(--cor-perigo);
+}
+
+/* Estilo para os SVGs dos ícones */
+.botao-acao-linha svg {
+  width: 16px; /* Tamanho consistente */
+  height: 16px;
+  stroke-width: 2.5; /* Traço um pouco mais grosso para melhor visibilidade */
+  vertical-align: middle; /* Alinha o ícone verticalmente */
 }
 
 /* ===================================================================================
@@ -676,6 +693,49 @@ tr.paga td {
 }
 
 /* ===================================================================================
+// ESTILOS DO FORMULÁRIO DE EDIÇÃO (MODAL)
+// =================================================================================== */
+
+#modal-edicao .modal-conteudo {
+  max-width: 500px; /* Define uma largura máxima para o modal não ficar desproporcional */
+}
+
+#formulario-edicao .grupo-formulario {
+  display: flex;
+  /* REMOVIDO: justify-content: space-between; */
+  align-items: center;
+  margin-bottom: 1.25rem;
+  gap: 1.5rem; /* Aumentamos o gap para um espaçamento melhor */
+}
+
+#formulario-edicao .grupo-formulario label {
+  width: 130px; /* LARGURA FIXA para todos os labels */
+  flex-shrink: 0; /* Impede que o label encolha */
+  font-weight: 500;
+  color: var(--cor-texto-secundario);
+  text-align: left;
+}
+
+#formulario-edicao .grupo-formulario input,
+#formulario-edicao .grupo-formulario select {
+  flex-grow: 1; /* Garante que o campo cresça para preencher o espaço */
+  width: 100%;
+  height: 44px;
+  padding: 0 0.75rem;
+  font-size: 1rem;
+  background-color: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+}
+
+#formulario-edicao button[type='submit'] {
+  width: 100%; /* O botão ocupa a largura total */
+  margin-top: 1.5rem; /* Espaço acima do botão */
+  padding: 0.8rem;
+  font-size: 1.05rem;
+}
+
+/* ===================================================================================
 // OUTROS COMPONENTES E UTILITÁRIOS
 // =================================================================================== */
 
@@ -873,6 +933,29 @@ tr.paga td {
     max-height: 88vh; /* Define uma altura máxima de 80% da tela */
     margin-top: 3vh; /* Adiciona uma margem no topo */
     margin-bottom: 3vh; /* Adiciona uma margem na base */
+  }
+
+  .container-formularios {
+    flex-direction: column;
+  }
+  .modal-conteudo.modal-grande {
+    height: auto;
+    max-height: 88vh;
+    margin-top: 3vh;
+    margin-bottom: 3vh;
+  }
+
+  /* --- INÍCIO DO NOVO CÓDIGO --- */
+  #formulario-edicao .grupo-formulario {
+    flex-direction: column; /* Empilha o label e o input verticalmente */
+    align-items: flex-start; /* Alinha ambos à esquerda */
+    gap: 0.5rem; /* Reduz o espaço entre o label e o input */
+  }
+
+  #formulario-edicao .grupo-formulario label {
+    flex-basis: auto; /* Remove a largura fixa do label */
+    text-align: left; /* Garante o alinhamento à esquerda (conforme seu ajuste) */
+    margin-bottom: 0;
   }
 }
 

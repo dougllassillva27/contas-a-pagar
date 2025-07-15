@@ -26,7 +26,6 @@
 // VARIÁVEIS GLOBAIS DE ESTADO
 // ===================================================================================
 let dadosAgrupadosCartao = {};
-
 // ===================================================================================
 // FUNÇÕES DE MANIPULAÇÃO DE FORMULÁRIOS
 // ===================================================================================
@@ -260,6 +259,7 @@ function vincularListenersDeEventosGlobais() {
           tipo: tipo,
         });
       } else if (acao === 'mover') {
+        // A função reordenarItem agora só precisa do botão clicado
         reordenarItem(gatilhoAcao);
       }
     } else if (alvoAcordeao) {
@@ -355,7 +355,10 @@ async function carregarValorAppDoBanco() {
  */
 function abrirModal(seletor) {
   const modal = document.getElementById(seletor);
-  if (modal) modal.style.display = 'flex';
+  if (modal) {
+    modal.style.display = 'flex';
+    document.body.classList.add('travamento-rolagem-modal'); // Adiciona a classe para travar a rolagem
+  }
 }
 
 /**
@@ -364,7 +367,10 @@ function abrirModal(seletor) {
  */
 function fecharModal(seletor) {
   const modal = document.getElementById(seletor);
-  if (modal) modal.style.display = 'none';
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.classList.remove('travamento-rolagem-modal'); // Remove a classe para liberar a rolagem
+  }
 }
 
 /**
@@ -380,7 +386,7 @@ function alternarVisibilidadeAcordeao(cabecalho) {
 }
 
 /**
- * Garante que um acordeão seja aberto, adicionando as classes necessárias.
+ * Garante que um acordeão seja aberto, adicionando as classes necessarias.
  * @param {HTMLElement} cabecalho O elemento do cabeçalho do acordeão.
  */
 function abrirAcordeao(cabecalho) {
@@ -425,11 +431,17 @@ function formatarInputDeParcela(evento) {
 function alternarVisibilidadeInfoParcela(evento) {
   const seletor = evento.target;
   const formulario = seletor.closest('form');
-  const campoInfoParcela = formulario.querySelector('[name="parcela_info"]');
-  const grupoFormulario = formulario.querySelector('#grupo-editar-info-parcela');
-  const deveExibir = seletor.value === 'PARCELADA';
-  if (campoInfoParcela) campoInfoParcela.style.display = deveExibir ? 'block' : 'none';
-  if (grupoFormulario) grupoFormulario.style.display = deveExibir ? 'block' : 'none';
+  const campoInputParcela = formulario.querySelector('[name="parcela_info"]');
+
+  // A abordagem correta é encontrar o DIV pai que agrupa o label e o input
+  const grupoDoFormulario = campoInputParcela ? campoInputParcela.closest('.grupo-formulario') : null;
+
+  if (grupoDoFormulario) {
+    const deveExibir = seletor.value === 'PARCELADA';
+    // Ao exibir, usamos 'flex' para respeitar o layout do CSS.
+    // Ao ocultar, usamos 'none'.
+    grupoDoFormulario.style.display = deveExibir ? 'flex' : 'none';
+  }
 }
 
 /**
@@ -457,7 +469,6 @@ function reabrirAcordeao(nome) {
 function abrirModalDetalhesCartao(nomeTerceiro) {
   const chaveDeDados = nomeTerceiro.replace(' cartão', '');
   const dados = dadosAgrupadosCartao[chaveDeDados];
-
   if (!dados) {
     console.error(`Dados para '${chaveDeDados}' não encontrados.`);
     return;
@@ -467,20 +478,16 @@ function abrirModalDetalhesCartao(nomeTerceiro) {
   const modalTitulo = document.getElementById('modal-detalhes-titulo');
   const modalLista = document.getElementById('modal-detalhes-lista');
   const modalTotal = document.getElementById('modal-detalhes-total');
-
   // 1. Formata Título e Total
   const [ano, mes] = MES_ANO_ATUAL.split('-');
   const dataTitulo = new Date(ano, mes - 1);
   const mesFormatado = dataTitulo.toLocaleString('pt-BR', { month: 'long' });
   const tituloMesAno = `${mesFormatado.charAt(0).toUpperCase() + mesFormatado.slice(1)}/${ano}`;
-
   modalTitulo.textContent = `Lançamentos cartão de crédito - ${nomeTerceiro} - ${tituloMesAno}`;
   modalTotal.textContent = `Total: ${formatarParaMoeda(dados.total)}`;
-
   // 2. Limpa a lista anterior
   modalLista.innerHTML = '';
   console.log(`[LOG] Lista limpa. Total de itens a renderizar: ${dados.itens.length}`);
-
   // 3. Cria colunas manualmente com Flexbox
   const LIMITE_PARA_DUAS_COLUNAS = 20;
   const totalItens = dados.itens.length;
@@ -864,14 +871,12 @@ function renderizarPainel(listaDeRendas, listaDeTodasAsContas) {
   const gastosDeTerceirosAgrupados = agruparGastosDeTerceiros(contasDeTerceiros);
   const totalContasVariaveis = contasPessoaisVariaveis.reduce((s, c) => s + parseFloat(c.valor), 0);
   const grupoDodo = { total: totalContasVariaveis, itens: contasPessoaisVariaveis };
-
   dadosAgrupadosCartao = { Dodo: grupoDodo, ...gastosDeTerceirosAgrupados };
 
   preencherTabelaDeRendas(listaDeRendas);
   preencherTabelaDeContasPessoais(document.querySelector('#tabela-contas-fixas tbody'), contasPessoaisFixas);
   preencherTabelaDeContasPessoais(document.querySelector('#tabela-contas-variaveis tbody'), contasPessoaisVariaveis);
   preencherCartoesDeTerceiros(dadosAgrupadosCartao, document.getElementById('cards-terceiros-container'), true, true);
-
   renderizarCardExclusivo('morr', contasTipoMorr, gastosDeTerceirosAgrupados['Morr']);
   renderizarCardExclusivo('mae', contasTipoMae, gastosDeTerceirosAgrupados['Mãe']);
   renderizarCardExclusivo('vo', contasTipoVo, gastosDeTerceirosAgrupados['Vô']);
@@ -889,6 +894,9 @@ function renderizarPainel(listaDeRendas, listaDeTodasAsContas) {
   vincularListenersDeStatusDasContas();
 
   ajustarLayoutDesktop();
+
+  // Renderiza os ícones Feather após a atualização do DOM
+  feather.replace();
 }
 
 /**
@@ -920,9 +928,26 @@ function preencherTabelaDeContasPessoais(corpoDaTabela, listaDeContas) {
     const linha = corpoDaTabela.insertRow();
     linha.className = conta.status === 'PAGA' ? 'paga' : '';
     const infoParcela = conta.parcela_info ? ` (${escaparHtml(conta.parcela_info)})` : '';
-    linha.innerHTML = `<td><input type="checkbox" class="status-conta" data-id="${conta.id}" ${conta.status === 'PAGA' ? 'checked' : ''}></td><td>${escaparHtml(conta.descricao)}${infoParcela}</td><td class="celula-com-acoes"><span>${formatarParaMoeda(conta.valor)}</span><div class="acoes-linha"><button class="botao-acao-linha" title="Mover para Cima" data-acao="mover" data-direcao="cima" data-tipo="conta" data-id="${conta.id}" data-ordem="${
-      conta.ordem
-    }">&#128314;</button><button class="botao-acao-linha" title="Mover para Baixo" data-acao="mover" data-direcao="baixo" data-tipo="conta" data-id="${conta.id}" data-ordem="${conta.ordem}">&#128315;</button><button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="conta" data-id="${conta.id}">&#9998;&#65039;</button><button class="botao-acao-linha" title="Excluir" data-acao="excluir" data-tipo="conta" data-id="${conta.id}">&#128467;&#65039;</button></div></td>`;
+    linha.innerHTML = `
+        <td><input type="checkbox" class="status-conta" data-id="${conta.id}" ${conta.status === 'PAGA' ? 'checked' : ''}></td>
+        <td>${escaparHtml(conta.descricao)}${infoParcela}</td>
+        <td class="celula-com-acoes">
+            <span>${formatarParaMoeda(conta.valor)}</span>
+            <div class="acoes-linha">
+                <button class="botao-acao-linha" title="Mover para Cima" data-acao="mover" data-direcao="cima" data-tipo="conta" data-id="${conta.id}" data-ordem="${conta.ordem}">
+                    <i data-feather="arrow-up"></i>
+                </button>
+                <button class="botao-acao-linha" title="Mover para Baixo" data-acao="mover" data-direcao="baixo" data-tipo="conta" data-id="${conta.id}" data-ordem="${conta.ordem}">
+                    <i data-feather="arrow-down"></i>
+                </button>
+                <button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="conta" data-id="${conta.id}">
+                    <i data-feather="edit-2"></i>
+                </button>
+                <button class="botao-acao-linha" title="Excluir" data-acao="excluir" data-tipo="conta" data-id="${conta.id}">
+                    <i data-feather="trash-2"></i>
+                </button>
+            </div>
+        </td>`;
   });
 }
 
@@ -936,9 +961,25 @@ function preencherTabelaDeRendas(dadosDasRendas) {
   corpoDaTabela.innerHTML = '';
   dadosDasRendas.forEach((renda) => {
     const linha = corpoDaTabela.insertRow();
-    linha.innerHTML = `<td>${escaparHtml(renda.descricao)}</td><td class="celula-com-acoes"><span>${formatarParaMoeda(renda.valor)}</span><div class="acoes-linha"><button class="botao-acao-linha" title="Mover para Cima" data-acao="mover" data-direcao="cima" data-tipo="renda" data-id="${renda.id}" data-ordem="${renda.ordem}">&#128314;</button><button class="botao-acao-linha" title="Mover para Baixo" data-acao="mover" data-direcao="baixo" data-tipo="renda" data-id="${
-      renda.ordem
-    }">&#128315;</button><button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="renda" data-id="${renda.id}">&#9998;&#65039;</button><button class="botao-acao-linha" title="Excluir" data-acao="excluir" data-tipo="renda" data-id="${renda.id}">&#128467;&#65039;</button></div></td>`;
+    linha.innerHTML = `
+        <td>${escaparHtml(renda.descricao)}</td>
+        <td class="celula-com-acoes">
+            <span>${formatarParaMoeda(renda.valor)}</span>
+            <div class="acoes-linha">
+                <button class="botao-acao-linha" title="Mover para Cima" data-acao="mover" data-direcao="cima" data-tipo="renda" data-id="${renda.id}" data-ordem="${renda.ordem}">
+                    <i data-feather="arrow-up"></i>
+                </button>
+                <button class="botao-acao-linha" title="Mover para Baixo" data-acao="mover" data-direcao="baixo" data-tipo="renda" data-id="${renda.id}" data-ordem="${renda.ordem}">
+                    <i data-feather="arrow-down"></i>
+                </button>
+                <button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="renda" data-id="${renda.id}">
+                    <i data-feather="edit-2"></i>
+                </button>
+                <button class="botao-acao-linha" title="Excluir" data-acao="excluir" data-tipo="renda" data-id="${renda.id}">
+                    <i data-feather="trash-2"></i>
+                </button>
+            </div>
+        </td>`;
   });
 }
 
@@ -965,9 +1006,23 @@ function preencherCartoesDeTerceiros(gastos, container = null, limparContainer =
     const htmlDosItens = dados.itens
       .map(
         (item) =>
-          `<li data-id="${item.id}" data-ordem="${item.ordem}"><span>${escaparHtml(item.descricao)}${item.parcela_info ? ` (${escaparHtml(item.parcela_info)})` : ''}: <strong>${formatarParaMoeda(item.valor)}</strong></span><div class="acoes-linha"><button class="botao-acao-linha" title="Mover para Cima" data-acao="mover" data-direcao="cima" data-tipo="conta" data-id="${item.id}" data-ordem="${
-            item.ordem
-          }">&#128314;</button><button class="botao-acao-linha" title="Mover para Baixo" data-acao="mover" data-direcao="baixo" data-tipo="conta" data-id="${item.id}" data-ordem="${item.ordem}">&#128315;</button><button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="conta" data-id="${item.id}">&#9998;&#65039;</button><button class="botao-acao-linha" title="Excluir" data-acao="excluir" data-tipo="conta" data-id="${item.id}">&#128467;&#65039;</button></div></li>`
+          `<li data-id="${item.id}" data-ordem="${item.ordem}">
+            <span>${escaparHtml(item.descricao)}${item.parcela_info ? ` (${escaparHtml(item.parcela_info)})` : ''}: <strong>${formatarParaMoeda(item.valor)}</strong></span>
+            <div class="acoes-linha">
+                <button class="botao-acao-linha" title="Mover para Cima" data-acao="mover" data-direcao="cima" data-tipo="conta" data-id="${item.id}" data-ordem="${item.ordem}">
+                    <i data-feather="arrow-up"></i>
+                </button>
+                <button class="botao-acao-linha" title="Mover para Baixo" data-acao="mover" data-direcao="baixo" data-tipo="conta" data-id="${item.id}" data-ordem="${item.ordem}">
+                    <i data-feather="arrow-down"></i>
+                </button>
+                <button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="conta" data-id="${item.id}">
+                    <i data-feather="edit-2"></i>
+                </button>
+                <button class="botao-acao-linha" title="Excluir" data-acao="excluir" data-tipo="conta" data-id="${item.id}">
+                    <i data-feather="trash-2"></i>
+                </button>
+            </div>
+          </li>`
       )
       .join('');
 
@@ -978,7 +1033,6 @@ function preencherCartoesDeTerceiros(gastos, container = null, limparContainer =
       : `<span class="icone-expandir">
            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
          </span>`;
-
     const itemAcordeao = document.createElement('div');
     itemAcordeao.className = 'acordeao-item';
     itemAcordeao.innerHTML = `
