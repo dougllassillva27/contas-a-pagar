@@ -231,7 +231,6 @@ body {
 }
 
 .container-acoes-principais {
-  padding: 0.5rem 0;
   text-align: center;
   margin-bottom: 1.5rem;
 }
@@ -666,6 +665,8 @@ tr.paga td {
   padding: 1rem 1.5rem;
   text-align: right;
   background-color: var(--cor-fundo);
+  border-bottom-left-radius: var(--raio-borda);
+  border-bottom-right-radius: var(--raio-borda);
 }
 
 .total-grande {
@@ -866,6 +867,12 @@ tr.paga td {
   }
   .container-formularios {
     flex-direction: column;
+  }
+  .modal-conteudo.modal-grande {
+    height: auto; /* Remove a altura fixa */
+    max-height: 88vh; /* Define uma altura máxima de 80% da tela */
+    margin-top: 3vh; /* Adiciona uma margem no topo */
+    margin-bottom: 3vh; /* Adiciona uma margem na base */
   }
 }
 
