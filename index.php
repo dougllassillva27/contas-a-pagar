@@ -49,12 +49,14 @@ $nome_mes_atual = strftime('%B/%Y', $data_base->getTimestamp());
                     <a href="?mes=<?= date('Y-m') ?>" class="botao-mes-atual">Mês Atual</a>
                     <a href="?mes=<?= $mes_ano_seguinte ?>">Próximo ›</a>
                     <button id="btn-copiar-mes" class="botao-copiar-mes">Copiar Contas</button>
+                    <button id="btn-imprimir-relatorio" class="botao-imprimir">Imprimir</button>
                     <button id="btn-deletar-mes" class="botao-deletar-mes">Deletar Mês</button>
                 </nav>
                 <div class="menu-acoes-mobile">
                     <button id="botao-menu-acoes" class="botao-menu-acoes" aria-label="Mais ações">⋮</button>
                     <div id="dropdown-menu-acoes" class="dropdown-menu-acoes">
                         <a href="#" id="link-copiar-mobile">Copiar Contas</a>
+                        <a href="#" id="link-imprimir-mobile">Imprimir Relatório</a>
                         <a href="#" id="link-deletar-mobile">Deletar Mês</a>
                         <a href="#" id="link-tema-mobile">Alterar Tema</a>
                     </div>

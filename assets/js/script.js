@@ -160,6 +160,8 @@ function vincularListenersDeEventosGlobais() {
   // Botões de ação do cabeçalho
   adicionarListenerSeguro('btn-copiar-mes', 'click', copiarContasParaProximoMes);
   adicionarListenerSeguro('btn-deletar-mes', 'click', iniciarExclusaoDeMes);
+  adicionarListenerSeguro('btn-imprimir-relatorio', 'click', imprimirRelatorioCartao);
+
   // Abertura de modais
   adicionarListenerSeguro('botao-abrir-modal-lancamento', 'click', () => abrirModal('modal-lancamento'));
   adicionarListenerSeguro('card-total-rendas', 'click', () => abrirModal('modal-rendas'));
@@ -218,6 +220,11 @@ function vincularListenersDeEventosGlobais() {
   adicionarListenerSeguro('link-deletar-mobile', 'click', (evento) => {
     evento.preventDefault();
     iniciarExclusaoDeMes();
+    document.getElementById('dropdown-menu-acoes').classList.remove('visivel');
+  });
+  adicionarListenerSeguro('link-imprimir-mobile', 'click', (evento) => {
+    evento.preventDefault();
+    imprimirRelatorioCartao();
     document.getElementById('dropdown-menu-acoes').classList.remove('visivel');
   });
   adicionarListenerSeguro('link-tema-mobile', 'click', (evento) => {
@@ -350,14 +357,25 @@ async function carregarValorAppDoBanco() {
 // ===================================================================================
 
 /**
- * Torna um modal visível.
+ * Torna um modal visível e executa ações de limpeza se necessário.
  * @param {string} seletor O ID do modal a ser aberto.
  */
 function abrirModal(seletor) {
   const modal = document.getElementById(seletor);
   if (modal) {
+    // Lógica especial para limpar o modal de lançamento ao abrir
+    if (seletor === 'modal-lancamento') {
+      const formRenda = document.getElementById('form-nova-renda');
+      const formConta = document.getElementById('form-nova-conta');
+      const campoParcela = document.getElementById('parcela-info');
+
+      if (formRenda) formRenda.reset();
+      if (formConta) formConta.reset();
+      if (campoParcela) campoParcela.style.display = 'none';
+    }
+
     modal.style.display = 'flex';
-    document.body.classList.add('travamento-rolagem-modal'); // Adiciona a classe para travar a rolagem
+    document.body.classList.add('travamento-rolagem-modal');
   }
 }
 
@@ -425,22 +443,32 @@ function formatarInputDeParcela(evento) {
 }
 
 /**
- * Mostra ou esconde o campo de informação de parcela baseado no tipo de conta selecionado.
+ * Mostra ou esconde o campo de informação de parcela baseado no tipo de conta selecionado,
+ * funcionando tanto no modal de adição quanto no de edição.
  * @param {Event} evento O evento (normalmente 'change') do elemento select.
  */
 function alternarVisibilidadeInfoParcela(evento) {
-  const seletor = evento.target;
-  const formulario = seletor.closest('form');
-  const campoInputParcela = formulario.querySelector('[name="parcela_info"]');
+  const seletorTipo = evento.target;
+  // 1. Encontra o formulário pai do <select> que foi alterado.
+  const formularioPai = seletorTipo.closest('form');
+  if (!formularioPai) return;
 
-  // A abordagem correta é encontrar o DIV pai que agrupa o label e o input
-  const grupoDoFormulario = campoInputParcela ? campoInputParcela.closest('.grupo-formulario') : null;
+  // 2. Dentro desse formulário, encontra o campo de input da parcela.
+  const campoParcela = formularioPai.querySelector('[name="parcela_info"]');
+  if (!campoParcela) return;
 
-  if (grupoDoFormulario) {
-    const deveExibir = seletor.value === 'PARCELADA';
-    // Ao exibir, usamos 'flex' para respeitar o layout do CSS.
-    // Ao ocultar, usamos 'none'.
-    grupoDoFormulario.style.display = deveExibir ? 'flex' : 'none';
+  const deveExibir = seletorTipo.value === 'PARCELADA';
+
+  // 3. Verifica se o campo de parcela está dentro de um .grupo-formulario (caso do modal de edição)
+  // ou se é um elemento direto (caso do modal de adição).
+  const elementoParaAlternar = campoParcela.closest('.grupo-formulario') || campoParcela;
+
+  // 4. Aplica o estilo correto para exibir ou ocultar.
+  // Para o .grupo-formulario (edição), usamos 'flex'. Para o input direto (adição), usamos 'block'.
+  if (deveExibir) {
+    elementoParaAlternar.style.display = elementoParaAlternar.classList.contains('grupo-formulario') ? 'flex' : 'block';
+  } else {
+    elementoParaAlternar.style.display = 'none';
   }
 }
 
@@ -1088,6 +1116,18 @@ function atualizarTitulosDosCards(totalContasFixas, totalContasVariaveis, totalC
   document.getElementById('total-contas-morr').textContent = formatarParaMoeda(totalMorr);
   document.getElementById('total-contas-mae').textContent = formatarParaMoeda(totalMae);
   document.getElementById('total-contas-vo').textContent = formatarParaMoeda(totalVo);
+}
+
+// ===================================================================================
+// IMPRESSÃO DE RELATÓRIOS
+// ===================================================================================
+
+/**
+ * Abre o relatório de cartão de crédito em PDF em uma nova guia.
+ */
+function imprimirRelatorioCartao() {
+  const url = `${BASE_URL}/api/relatorios/imprimir_cartao.php?mes=${MES_ANO_ATUAL}`;
+  window.open(url, '_blank');
 }
 
 // ===================================================================================

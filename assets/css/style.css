@@ -716,16 +716,20 @@ tr.paga td {
   text-align: left;
 }
 
-#formulario-edicao .grupo-formulario input,
 #formulario-edicao .grupo-formulario select {
-  flex-grow: 1; /* Garante que o campo cresça para preencher o espaço */
-  width: 100%;
-  height: 44px;
-  padding: 0 0.75rem;
-  font-size: 1rem;
-  background-color: var(--cor-fundo);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-borda);
+  /* Remove a aparência padrão do navegador */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  /* Adiciona nossa própria seta como imagem de fundo */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+
+  /* Garante que o texto não sobreponha a seta */
+  padding-right: 2.5rem;
 }
 
 #formulario-edicao button[type='submit'] {
@@ -733,6 +737,18 @@ tr.paga td {
   margin-top: 1.5rem; /* Espaço acima do botão */
   padding: 0.8rem;
   font-size: 1.05rem;
+}
+
+#formulario-edicao .grupo-formulario input,
+#formulario-edicao .grupo-formulario select {
+  flex-grow: 1;
+  /* REMOVA ESTA LINHA ABAIXO */
+  height: 44px;
+  padding: 0 0.75rem;
+  font-size: 1rem;
+  background-color: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
 }
 
 /* ===================================================================================
@@ -907,7 +923,8 @@ tr.paga td {
     flex-shrink: 0;
   }
   .navegacao-mes .botao-copiar-mes,
-  .navegacao-mes .botao-deletar-mes {
+  .navegacao-mes .botao-deletar-mes,
+  .navegacao-mes .botao-imprimir {
     display: none;
   }
   #alternar-tema {
@@ -944,19 +961,42 @@ tr.paga td {
     margin-top: 3vh;
     margin-bottom: 3vh;
   }
-
-  /* --- INÍCIO DO NOVO CÓDIGO --- */
   #formulario-edicao .grupo-formulario {
-    flex-direction: column; /* Empilha o label e o input verticalmente */
-    align-items: flex-start; /* Alinha ambos à esquerda */
-    gap: 0.5rem; /* Reduz o espaço entre o label e o input */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 
   #formulario-edicao .grupo-formulario label {
-    flex-basis: auto; /* Remove a largura fixa do label */
-    text-align: left; /* Garante o alinhamento à esquerda (conforme seu ajuste) */
+    width: auto;
+    text-align: left;
     margin-bottom: 0;
   }
+
+  #formulario-edicao .grupo-formulario input,
+  #formulario-edicao .grupo-formulario select {
+    width: 100%; /* Garante que todos os campos ocupem a largura total */
+  }
+}
+
+body.modo-dark #formulario-edicao .grupo-formulario select {
+  /* SVG da seta com a cor branca para o modo escuro */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+}
+
+/* ===================================================================================
+// IMPRESSÃO DE RELATÓRIOS
+// =================================================================================== */
+
+.botao-imprimir {
+  background-color: #3498db; /* Um azul diferente */
+  color: white !important;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.botao-imprimir:hover {
+  background-color: #2980b9;
 }
 
 /* ===================================================================================
