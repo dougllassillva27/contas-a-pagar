@@ -8,14 +8,16 @@
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * furnished to do so, subject to the following 
+ conditions:
  *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
@@ -161,7 +163,6 @@ function vincularListenersDeEventosGlobais() {
   adicionarListenerSeguro('btn-copiar-mes', 'click', copiarContasParaProximoMes);
   adicionarListenerSeguro('btn-deletar-mes', 'click', iniciarExclusaoDeMes);
   adicionarListenerSeguro('btn-imprimir-relatorio', 'click', imprimirRelatorioCartao);
-
   // Abertura de modais
   adicionarListenerSeguro('botao-abrir-modal-lancamento', 'click', () => abrirModal('modal-lancamento'));
   adicionarListenerSeguro('card-total-rendas', 'click', () => abrirModal('modal-rendas'));
@@ -248,7 +249,7 @@ function vincularListenersDeEventosGlobais() {
       }
     });
   });
-  // Listener delegado para ações de linha (editar, excluir, mover) e acordeões
+  // Listener delegado para ações de linha (editar, excluir) e acordeões
   document.body.addEventListener('click', (evento) => {
     const gatilhoAcao = evento.target.closest('.botao-acao-linha');
     const alvoAcordeao = evento.target.closest('[data-acao]');
@@ -265,9 +266,6 @@ function vincularListenersDeEventosGlobais() {
           id: id,
           tipo: tipo,
         });
-      } else if (acao === 'mover') {
-        // A função reordenarItem agora só precisa do botão clicado
-        reordenarItem(gatilhoAcao);
       }
     } else if (alvoAcordeao) {
       const acao = alvoAcordeao.dataset.acao;
@@ -353,8 +351,57 @@ async function carregarValorAppDoBanco() {
 }
 
 // ===================================================================================
-// FUNÇÕES DE CONTROLE DE UI (MODAIS, ACORDEÃO, ETC.)
+// FUNÇÕES DE CONTROLE DE UI (MODAIS, ACORDEÃO, DRAG-DROP, ETC.)
 // ===================================================================================
+
+/**
+ * Envia a nova ordem dos itens para a API após o usuário arrastar e soltar.
+ * @param {string} tipo 'conta' ou 'renda'.
+ * @param {Array<string>} ordemDosIds Um array com os IDs dos itens na nova ordem.
+ */
+async function enviarNovaOrdemParaAPI(tipo, ordemDosIds) {
+  const tipoTabela = tipo === 'conta' ? 'contas' : 'rendas';
+  try {
+    const resposta = await fetch(`${BASE_URL}/api/lancamentos/reordenar.php`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tipo: tipoTabela,
+        ordem_ids: ordemDosIds,
+      }),
+    });
+    const resultado = await resposta.json();
+    if (!resultado.sucesso) {
+      alert('Erro ao salvar a nova ordem: ' + resultado.erro);
+      carregarDadosDoPainel(); // Recarrega para reverter a alteração visual
+    }
+  } catch (erro) {
+    console.error('Erro na comunicação ao reordenar:', erro);
+    alert('Ocorreu um erro de comunicação ao tentar salvar a nova ordem.');
+    carregarDadosDoPainel();
+  }
+}
+
+/**
+ * Inicializa a funcionalidade de arrastar e soltar em um container de lista (tbody ou ul).
+ * @param {HTMLElement} containerElement O elemento que contém os itens arrastáveis.
+ * @param {string} tipoItem 'conta' ou 'renda', para enviar à API.
+ */
+function inicializarArrastarESoltar(containerElement, tipoItem) {
+  if (containerElement && typeof Sortable !== 'undefined') {
+    new Sortable(containerElement, {
+      animation: 150,
+      handle: '.drag-handle',
+      ghostClass: 'sortable-ghost',
+      dragClass: 'sortable-drag',
+      onEnd: (evt) => {
+        const itens = Array.from(evt.target.children);
+        const ordemDosIds = itens.map((item) => item.dataset.id);
+        enviarNovaOrdemParaAPI(tipoItem, ordemDosIds);
+      },
+    });
+  }
+}
 
 /**
  * Torna um modal visível e executa ações de limpeza se necessário.
@@ -363,7 +410,6 @@ async function carregarValorAppDoBanco() {
 function abrirModal(seletor) {
   const modal = document.getElementById(seletor);
   if (modal) {
-    // Lógica especial para limpar o modal de lançamento ao abrir
     if (seletor === 'modal-lancamento') {
       const formRenda = document.getElementById('form-nova-renda');
       const formConta = document.getElementById('form-nova-conta');
@@ -387,7 +433,7 @@ function fecharModal(seletor) {
   const modal = document.getElementById(seletor);
   if (modal) {
     modal.style.display = 'none';
-    document.body.classList.remove('travamento-rolagem-modal'); // Remove a classe para liberar a rolagem
+    document.body.classList.remove('travamento-rolagem-modal');
   }
 }
 
@@ -443,28 +489,18 @@ function formatarInputDeParcela(evento) {
 }
 
 /**
- * Mostra ou esconde o campo de informação de parcela baseado no tipo de conta selecionado,
- * funcionando tanto no modal de adição quanto no de edição.
+ * Mostra ou esconde o campo de informação de parcela baseado no tipo de conta selecionado.
  * @param {Event} evento O evento (normalmente 'change') do elemento select.
  */
 function alternarVisibilidadeInfoParcela(evento) {
   const seletorTipo = evento.target;
-  // 1. Encontra o formulário pai do <select> que foi alterado.
   const formularioPai = seletorTipo.closest('form');
   if (!formularioPai) return;
-
-  // 2. Dentro desse formulário, encontra o campo de input da parcela.
   const campoParcela = formularioPai.querySelector('[name="parcela_info"]');
   if (!campoParcela) return;
-
   const deveExibir = seletorTipo.value === 'PARCELADA';
-
-  // 3. Verifica se o campo de parcela está dentro de um .grupo-formulario (caso do modal de edição)
-  // ou se é um elemento direto (caso do modal de adição).
   const elementoParaAlternar = campoParcela.closest('.grupo-formulario') || campoParcela;
 
-  // 4. Aplica o estilo correto para exibir ou ocultar.
-  // Para o .grupo-formulario (edição), usamos 'flex'. Para o input direto (adição), usamos 'block'.
   if (deveExibir) {
     elementoParaAlternar.style.display = elementoParaAlternar.classList.contains('grupo-formulario') ? 'flex' : 'block';
   } else {
@@ -473,106 +509,55 @@ function alternarVisibilidadeInfoParcela(evento) {
 }
 
 /**
- * Garante que um acordeão específico seja reaberto após uma ação (como reordenar).
- * @param {string} nome O nome do terceiro no cabeçalho do acordeão a ser reaberto.
- */
-function reabrirAcordeao(nome) {
-  const todosCabecalhos = document.querySelectorAll('.acordeao-cabecalho');
-  for (const cabecalho of todosCabecalhos) {
-    const nomeElemento = cabecalho.querySelector('.nome-terceiro');
-    if (nomeElemento && nomeElemento.textContent === nome) {
-      if (!cabecalho.classList.contains('ativo')) {
-        alternarVisibilidadeAcordeao(cabecalho);
-      }
-      break;
-    }
-  }
-}
-
-/**
  * Abre um modal grande e dinâmico para exibir os detalhes de uma categoria do cartão.
- * A altura e largura do modal se adaptam à quantidade de itens.
  * @param {string} nomeTerceiro O nome da categoria a ser exibida.
  */
 function abrirModalDetalhesCartao(nomeTerceiro) {
   const chaveDeDados = nomeTerceiro.replace(' cartão', '');
   const dados = dadosAgrupadosCartao[chaveDeDados];
-  if (!dados) {
-    console.error(`Dados para '${chaveDeDados}' não encontrados.`);
-    return;
-  }
+  if (!dados) return;
 
-  const modalContent = document.querySelector('#modal-detalhes-cartao .modal-conteudo');
   const modalTitulo = document.getElementById('modal-detalhes-titulo');
   const modalLista = document.getElementById('modal-detalhes-lista');
   const modalTotal = document.getElementById('modal-detalhes-total');
-  // 1. Formata Título e Total
+
   const [ano, mes] = MES_ANO_ATUAL.split('-');
   const dataTitulo = new Date(ano, mes - 1);
   const mesFormatado = dataTitulo.toLocaleString('pt-BR', { month: 'long' });
   const tituloMesAno = `${mesFormatado.charAt(0).toUpperCase() + mesFormatado.slice(1)}/${ano}`;
   modalTitulo.textContent = `Lançamentos cartão de crédito - ${nomeTerceiro} - ${tituloMesAno}`;
   modalTotal.textContent = `Total: ${formatarParaMoeda(dados.total)}`;
-  // 2. Limpa a lista anterior
   modalLista.innerHTML = '';
-  console.log(`[LOG] Lista limpa. Total de itens a renderizar: ${dados.itens.length}`);
-  // 3. Cria colunas manualmente com Flexbox
+
   const LIMITE_PARA_DUAS_COLUNAS = 20;
   const totalItens = dados.itens.length;
-  console.log(`[LOG] Total de itens: ${totalItens}, LIMITE_PARA_DUAS_COLUNAS: ${LIMITE_PARA_DUAS_COLUNAS}`);
 
   if (totalItens > LIMITE_PARA_DUAS_COLUNAS) {
     modalLista.classList.add('layout-duas-colunas-flex');
     const metade = Math.ceil(totalItens / 2);
-    const coluna1 = document.createElement('div');
-    const coluna2 = document.createElement('div');
+    const [coluna1, coluna2] = [document.createElement('div'), document.createElement('div')];
     coluna1.className = 'coluna-detalhes';
     coluna2.className = 'coluna-detalhes';
-    modalLista.appendChild(coluna1);
-    modalLista.appendChild(coluna2);
+    modalLista.append(coluna1, coluna2);
 
-    dados.itens.slice(0, metade).forEach((item, indice) => {
-      const infoParcela = item.parcela_info ? ` (${escaparHtml(item.parcela_info)})` : '';
-      const itemDiv = document.createElement('div');
-      itemDiv.className = 'detalhe-item';
-      itemDiv.innerHTML = `<span>${escaparHtml(item.descricao)}${infoParcela}</span><strong>${formatarParaMoeda(item.valor)}</strong>`;
-      coluna1.appendChild(itemDiv);
-      if ((indice + 1) % 10 === 0 || indice === metade - 1) {
-        console.log(`[LOG] Coluna 1 - Item ${indice + 1} renderizado. Total na coluna: ${coluna1.children.length}`);
-      }
-    });
-
-    dados.itens.slice(metade).forEach((item, indice) => {
-      const infoParcela = item.parcela_info ? ` (${escaparHtml(item.parcela_info)})` : '';
-      const itemDiv = document.createElement('div');
-      itemDiv.className = 'detalhe-item';
-      itemDiv.innerHTML = `<span>${escaparHtml(item.descricao)}${infoParcela}</span><strong>${formatarParaMoeda(item.valor)}</strong>`;
-      coluna2.appendChild(itemDiv);
-      if ((indice + 1) % 10 === 0 || indice === totalItens - metade - 1) {
-        console.log(`[LOG] Coluna 2 - Item ${indice + 1} renderizado. Total na coluna: ${coluna2.children.length}`);
-      }
-    });
-    console.log('[LOG] Layout de duas colunas aplicado com Flexbox.');
-  } else {
     dados.itens.forEach((item, indice) => {
       const infoParcela = item.parcela_info ? ` (${escaparHtml(item.parcela_info)})` : '';
       const itemDiv = document.createElement('div');
       itemDiv.className = 'detalhe-item';
       itemDiv.innerHTML = `<span>${escaparHtml(item.descricao)}${infoParcela}</span><strong>${formatarParaMoeda(item.valor)}</strong>`;
-      modalLista.appendChild(itemDiv);
-      if ((indice + 1) % 10 === 0 || indice === totalItens - 1) {
-        console.log(`[LOG] Item ${indice + 1} renderizado. Total até agora: ${modalLista.querySelectorAll('.detalhe-item').length}`);
-      }
+      (indice < metade ? coluna1 : coluna2).appendChild(itemDiv);
     });
+  } else {
     modalLista.classList.remove('layout-duas-colunas-flex');
-    console.log('[LOG] Layout de uma coluna mantido.');
+    dados.itens.forEach((item) => {
+      const infoParcela = item.parcela_info ? ` (${escaparHtml(item.parcela_info)})` : '';
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'detalhe-item';
+      itemDiv.innerHTML = `<span>${escaparHtml(item.descricao)}${infoParcela}</span><strong>${formatarParaMoeda(item.valor)}</strong>`;
+      modalLista.appendChild(itemDiv);
+    });
   }
 
-  // 5. Verifica o DOM após renderização
-  const itensRenderizados = modalLista.querySelectorAll('.detalhe-item').length;
-  console.log(`[LOG] Itens renderizados no DOM: ${itensRenderizados}`);
-
-  // 6. Finalmente, abre o modal
   abrirModal('modal-detalhes-cartao');
 }
 
@@ -585,7 +570,6 @@ function abrirModalDetalhesCartao(nomeTerceiro) {
  */
 async function carregarDadosDoPainel() {
   if (window.skipCarregarDados) {
-    console.log('carregarDadosDoPainel bloqueado por skipCarregarDados');
     return;
   }
   try {
@@ -657,10 +641,6 @@ async function salvarAlteracoes(evento) {
 /**
  * Abre o modal de confirmação genérico com textos customizados.
  * @param {object} config Objeto de configuração.
- * @param {string} config.titulo Título do modal.
- * @param {string} config.mensagem Mensagem de confirmação.
- * @param {number|null} config.id ID do item a ser afetado.
- * @param {string} config.tipo Tipo da ação a ser executada ('mes', 'copiar-mes', 'conta', 'renda').
  */
 function abrirModalDeConfirmacao({ titulo, mensagem, id, tipo }) {
   document.getElementById('modal-confirmacao-titulo').textContent = titulo;
@@ -678,7 +658,7 @@ async function executarExclusao() {
   const botaoConfirmar = document.getElementById('botao-executar-confirmacao');
   const id = botaoConfirmar.dataset.idParaExcluir;
   const tipo = botaoConfirmar.dataset.tipoParaExcluir;
-  // Lógica para deletar o mês inteiro
+
   if (tipo === 'mes') {
     try {
       const resposta = await fetch(`${BASE_URL}/api/deletar_mes.php`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mes_ano: MES_ANO_ATUAL }) });
@@ -690,14 +670,12 @@ async function executarExclusao() {
         fecharModal('modal-confirmacao');
       }
     } catch (erro) {
-      console.error('Erro de comunicação ao deletar mês:', erro);
       alert('Ocorreu um erro de comunicação ao tentar deletar o mês.');
       fecharModal('modal-confirmacao');
     }
     return;
   }
 
-  // Lógica para copiar o mês
   if (tipo === 'copiar-mes') {
     const dadosDoFormulario = new FormData();
     dadosDoFormulario.append('mes_ano_origem', MES_ANO_ATUAL);
@@ -705,29 +683,19 @@ async function executarExclusao() {
       const resposta = await fetch(`${BASE_URL}/api/contas/copiar_mes.php`, { method: 'POST', body: dadosDoFormulario });
       const resultado = await resposta.json();
       if (resultado.sucesso) {
-        const totalItens = (resultado.dados.contas_copiadas || 0) + (resultado.dados.rendas_copiadas || 0);
         fecharModal('modal-confirmacao');
-        const toast = document.createElement('div');
-        toast.className = 'notificacao';
-        toast.textContent = `${totalItens} itens foram copiados.`;
-        document.body.appendChild(toast);
-        setTimeout(() => {
-          toast.remove();
-          window.location.href = `?mes=${resultado.dados.proximo_mes}`;
-        }, 3000);
+        window.location.href = `?mes=${resultado.dados.proximo_mes}`;
       } else {
         alert('Erro ao copiar: ' + resultado.erro);
         fecharModal('modal-confirmacao');
       }
     } catch (erro) {
-      console.error('Erro ao copiar contas e rendas:', erro);
       alert('Ocorreu um erro de comunicação.');
       fecharModal('modal-confirmacao');
     }
     return;
   }
 
-  // Lógica para excluir um item individual
   if (!id || !tipo) return;
   const url = `${BASE_URL}/api/${tipo}s/excluir.php`;
   const dadosDoFormulario = new FormData();
@@ -742,7 +710,6 @@ async function executarExclusao() {
       alert('Erro ao excluir: ' + resultado.erro);
     }
   } catch (erro) {
-    console.error('Erro na requisição de exclusão:', erro);
     alert('Ocorreu um erro de comunicação ao tentar excluir.');
   }
 }
@@ -752,55 +719,6 @@ async function executarExclusao() {
  */
 function iniciarExclusaoDeMes() {
   abrirModalDeConfirmacao({ titulo: 'Deletar Mês', mensagem: `Tem certeza que deseja deletar todas as rendas e contas de ${MES_ANO_ATUAL}? Esta ação não pode ser desfeita.`, id: null, tipo: 'mes' });
-}
-
-/**
- * Troca a ordem de dois itens adjacentes (renda ou conta) na lista.
- * @param {HTMLElement} elementoBotao O botão de mover (para cima ou para baixo) que foi clicado.
- */
-async function reordenarItem(elementoBotao) {
-  const direcao = elementoBotao.dataset.direcao;
-  const linhaMovida = elementoBotao.closest('tr, li');
-  const nomeTerceiroAcordeaoAberto = linhaMovida.closest('.acordeao-item')?.querySelector('.nome-terceiro')?.textContent || null;
-  const itemAlvo = direcao === 'cima' ? linhaMovida.previousElementSibling : linhaMovida.nextElementSibling;
-
-  if (!itemAlvo) return;
-
-  const tipo = elementoBotao.dataset.tipo;
-  const idMovido = elementoBotao.dataset.id;
-  const ordemMovida = elementoBotao.dataset.ordem;
-  const botaoAlvo = itemAlvo.querySelector(`.botao-acao-linha[data-acao='mover']`);
-
-  if (!botaoAlvo) return;
-
-  const idAlvo = botaoAlvo.dataset.id;
-  const ordemAlvo = botaoAlvo.dataset.ordem;
-
-  const url = `${BASE_URL}/api/lancamentos/reordenar.php`;
-  const dadosDoFormulario = new FormData();
-  dadosDoFormulario.append('tipo', tipo);
-  dadosDoFormulario.append('id_movido', idMovido);
-  dadosDoFormulario.append('ordem_movido', ordemMovida);
-  dadosDoFormulario.append('id_alvo', idAlvo);
-  dadosDoFormulario.append('ordem_alvo', ordemAlvo);
-
-  try {
-    const resposta = await fetch(url, { method: 'POST', body: dadosDoFormulario });
-    const resultado = await resposta.json();
-    if (resultado.sucesso) {
-      await carregarDadosDoPainel();
-      if (nomeTerceiroAcordeaoAberto) {
-        requestAnimationFrame(() => {
-          reabrirAcordeao(nomeTerceiroAcordeaoAberto);
-        });
-      }
-    } else {
-      alert('Erro ao reordenar: ' + resultado.erro);
-    }
-  } catch (erro) {
-    console.error('Erro na requisição de reordenação:', erro);
-    alert('Ocorreu um erro de comunicação ao tentar reordenar.');
-  }
 }
 
 /**
@@ -822,13 +740,12 @@ async function atualizarStatusDeConta(evento) {
       checkbox.checked = !checkbox.checked;
     }
   } catch (erro) {
-    console.error('Erro ao atualizar status:', erro);
     alert('Ocorreu um erro de comunicação ao tentar atualizar.');
   }
 }
 
 /**
- * Inicia o fluxo para copiar os dados do mês atual para o próximo, abrindo o modal de confirmação.
+ * Inicia o fluxo para copiar os dados do mês atual para o próximo.
  */
 async function copiarContasParaProximoMes() {
   abrirModalDeConfirmacao({ titulo: 'Copiar Mês', mensagem: 'Deseja realmente copiar as contas fixas, parceladas, rendas e lançamentos Morr, Mãe e Vô para o próximo mês?', id: null, tipo: 'copiar-mes' });
@@ -923,12 +840,20 @@ function renderizarPainel(listaDeRendas, listaDeTodasAsContas) {
 
   ajustarLayoutDesktop();
 
-  // Renderiza os ícones Feather após a atualização do DOM
+  // INICIALIZA o drag-and-drop nos containers
+  document.querySelectorAll('.tabela-lancamentos tbody').forEach((tbody) => {
+    inicializarArrastarESoltar(tbody, 'conta');
+  });
+  document.querySelectorAll('.acordeao-corpo ul').forEach((ul) => {
+    inicializarArrastarESoltar(ul, 'conta');
+  });
+  inicializarArrastarESoltar(document.querySelector('#tabela-rendas tbody'), 'renda');
+
   feather.replace();
 }
 
 /**
- * Agrupa as contas de terceiros pelo nome do terceiro e calcula o total para cada um.
+ * Agrupa as contas de terceiros pelo nome do terceiro.
  * @param {Array} contasDeTerceiros A lista de contas que possuem um 'nome_terceiro'.
  * @returns {object} Um objeto onde cada chave é um nome de terceiro e o valor é um objeto com {total, itens}.
  */
@@ -955,19 +880,15 @@ function preencherTabelaDeContasPessoais(corpoDaTabela, listaDeContas) {
   listaDeContas.forEach((conta) => {
     const linha = corpoDaTabela.insertRow();
     linha.className = conta.status === 'PAGA' ? 'paga' : '';
+    linha.dataset.id = conta.id;
     const infoParcela = conta.parcela_info ? ` (${escaparHtml(conta.parcela_info)})` : '';
     linha.innerHTML = `
-        <td><input type="checkbox" class="status-conta" data-id="${conta.id}" ${conta.status === 'PAGA' ? 'checked' : ''}></td>
-        <td>${escaparHtml(conta.descricao)}${infoParcela}</td>
-        <td class="celula-com-acoes">
+        <td data-label="Status"><input type="checkbox" class="status-conta" data-id="${conta.id}" ${conta.status === 'PAGA' ? 'checked' : ''}></td>
+        <td data-label="Descrição">${escaparHtml(conta.descricao)}${infoParcela}</td>
+        <td data-label="Valor" class="celula-com-acoes">
             <span>${formatarParaMoeda(conta.valor)}</span>
             <div class="acoes-linha">
-                <button class="botao-acao-linha" title="Mover para Cima" data-acao="mover" data-direcao="cima" data-tipo="conta" data-id="${conta.id}" data-ordem="${conta.ordem}">
-                    <i data-feather="arrow-up"></i>
-                </button>
-                <button class="botao-acao-linha" title="Mover para Baixo" data-acao="mover" data-direcao="baixo" data-tipo="conta" data-id="${conta.id}" data-ordem="${conta.ordem}">
-                    <i data-feather="arrow-down"></i>
-                </button>
+                <i data-feather="move" class="drag-handle"></i>
                 <button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="conta" data-id="${conta.id}">
                     <i data-feather="edit-2"></i>
                 </button>
@@ -989,17 +910,13 @@ function preencherTabelaDeRendas(dadosDasRendas) {
   corpoDaTabela.innerHTML = '';
   dadosDasRendas.forEach((renda) => {
     const linha = corpoDaTabela.insertRow();
+    linha.dataset.id = renda.id;
     linha.innerHTML = `
-        <td>${escaparHtml(renda.descricao)}</td>
-        <td class="celula-com-acoes">
+        <td data-label="Descrição">${escaparHtml(renda.descricao)}</td>
+        <td data-label="Valor" class="celula-com-acoes">
             <span>${formatarParaMoeda(renda.valor)}</span>
             <div class="acoes-linha">
-                <button class="botao-acao-linha" title="Mover para Cima" data-acao="mover" data-direcao="cima" data-tipo="renda" data-id="${renda.id}" data-ordem="${renda.ordem}">
-                    <i data-feather="arrow-up"></i>
-                </button>
-                <button class="botao-acao-linha" title="Mover para Baixo" data-acao="mover" data-direcao="baixo" data-tipo="renda" data-id="${renda.id}" data-ordem="${renda.ordem}">
-                    <i data-feather="arrow-down"></i>
-                </button>
+                <i data-feather="move" class="drag-handle"></i>
                 <button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="renda" data-id="${renda.id}">
                     <i data-feather="edit-2"></i>
                 </button>
@@ -1034,32 +951,29 @@ function preencherCartoesDeTerceiros(gastos, container = null, limparContainer =
     const htmlDosItens = dados.itens
       .map(
         (item) =>
-          `<li data-id="${item.id}" data-ordem="${item.ordem}">
-            <span>${escaparHtml(item.descricao)}${item.parcela_info ? ` (${escaparHtml(item.parcela_info)})` : ''}: <strong>${formatarParaMoeda(item.valor)}</strong></span>
-            <div class="acoes-linha">
-                <button class="botao-acao-linha" title="Mover para Cima" data-acao="mover" data-direcao="cima" data-tipo="conta" data-id="${item.id}" data-ordem="${item.ordem}">
-                    <i data-feather="arrow-up"></i>
-                </button>
-                <button class="botao-acao-linha" title="Mover para Baixo" data-acao="mover" data-direcao="baixo" data-tipo="conta" data-id="${item.id}" data-ordem="${item.ordem}">
-                    <i data-feather="arrow-down"></i>
-                </button>
-                <button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="conta" data-id="${item.id}">
-                    <i data-feather="edit-2"></i>
-                </button>
-                <button class="botao-acao-linha" title="Excluir" data-acao="excluir" data-tipo="conta" data-id="${item.id}">
-                    <i data-feather="trash-2"></i>
-                </button>
+          `<li data-id="${item.id}">
+            <div class="conteudo-item-lista">
+                <span>${escaparHtml(item.descricao)}${item.parcela_info ? ` (${escaparHtml(item.parcela_info)})` : ''}: <strong>${formatarParaMoeda(item.valor)}</strong></span>
+                <div class="acoes-linha">
+                    <i data-feather="move" class="drag-handle"></i>
+                    <button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="conta" data-id="${item.id}">
+                        <i data-feather="edit-2"></i>
+                    </button>
+                    <button class="botao-acao-linha" title="Excluir" data-acao="excluir" data-tipo="conta" data-id="${item.id}">
+                        <i data-feather="trash-2"></i>
+                    </button>
+                </div>
             </div>
           </li>`
       )
       .join('');
-
     const iconeHtml = comBotaoDetalhes
       ? `<button class="icone-expandir icone-detalhes" title="Ver todos os detalhes" data-acao="ver-detalhes" data-nome-terceiro="${escaparHtml(nome)}">
            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>
          </button>`
       : `<span class="icone-expandir">
-           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 
+ 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
          </span>`;
     const itemAcordeao = document.createElement('div');
     itemAcordeao.className = 'acordeao-item';
@@ -1102,12 +1016,6 @@ function atualizarResumoGeral(totalRendas, totalContasPessoais) {
 
 /**
  * Atualiza os totais nos títulos dos cards do painel.
- * @param {number} totalContasFixas Total das contas fixas.
- * @param {number} totalContasVariaveis Total das contas variáveis.
- * @param {number} totalCartaoDeCredito Total geral do cartão de crédito.
- * @param {number} totalMorr Total do card "Morr".
- * @param {number} totalMae Total do card "Mãe".
- * @param {number} totalVo Total do card "Vô".
  */
 function atualizarTitulosDosCards(totalContasFixas, totalContasVariaveis, totalCartaoDeCredito, totalMorr, totalMae, totalVo) {
   document.getElementById('total-contas-fixas').textContent = formatarParaMoeda(totalContasFixas);

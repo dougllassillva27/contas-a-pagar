@@ -27,44 +27,43 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/contas/inc/conexao.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/contas/inc/proteger_pagina.php';
 
 $resposta = ['sucesso' => false];
+$dados = json_decode(file_get_contents('php://input'), true);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_do_usuario = $_SESSION['usuario_id'];
-    $tipo_tabela = filter_input(INPUT_POST, 'tipo', FILTER_SANITIZE_SPECIAL_CHARS) === 'conta' ? 'contas' : 'rendas';
-    
-    $id_item_movido = filter_input(INPUT_POST, 'id_movido', FILTER_VALIDATE_INT);
-    $ordem_item_movido = filter_input(INPUT_POST, 'ordem_movido', FILTER_VALIDATE_INT);
-    
-    $id_item_alvo = filter_input(INPUT_POST, 'id_alvo', FILTER_VALIDATE_INT);
-    $ordem_item_alvo = filter_input(INPUT_POST, 'ordem_alvo', FILTER_VALIDATE_INT);
+$id_do_usuario = $_SESSION['usuario_id'];
+$tipo_tabela = $dados['tipo'] ?? null;
+$ordem_ids = $dados['ordem_ids'] ?? null;
 
-    if (in_array($tipo_tabela, ['contas', 'rendas']) && $id_item_movido && isset($ordem_item_movido) && $id_item_alvo && isset($ordem_item_alvo)) {
-        try {
-            $pdo->beginTransaction();
+// Validação dos dados recebidos
+if (in_array($tipo_tabela, ['contas', 'rendas']) && is_array($ordem_ids) && !empty($ordem_ids)) {
+    try {
+        $pdo->beginTransaction();
 
-            $sql1 = "UPDATE {$tipo_tabela} SET ordem = :ordem_nova WHERE id = :id AND usuario_id = :id_usuario";
-            $comando1 = $pdo->prepare($sql1);
-            $comando1->execute([':ordem_nova' => $ordem_item_movido, ':id' => $id_item_alvo, ':id_usuario' => $id_do_usuario]);
+        $sql = "UPDATE {$tipo_tabela} SET ordem = :ordem WHERE id = :id AND usuario_id = :id_usuario";
+        $comando = $pdo->prepare($sql);
 
-            $sql2 = "UPDATE {$tipo_tabela} SET ordem = :ordem_nova WHERE id = :id AND usuario_id = :id_usuario";
-            $comando2 = $pdo->prepare($sql2);
-            $comando2->execute([':ordem_nova' => $ordem_item_alvo, ':id' => $id_item_movido, ':id_usuario' => $id_do_usuario]);
-            
-            $pdo->commit();
-            $resposta['sucesso'] = true;
-
-        } catch (PDOException $e) {
-            $pdo->rollBack();
-            http_response_code(500);
-            $resposta['erro'] = 'Erro de Servidor ao reordenar: ' . $e->getMessage();
+        // Itera sobre o array de IDs recebido e atualiza a ordem de cada um
+        foreach ($ordem_ids as $indice => $id) {
+            $nova_ordem = $indice + 1; // A ordem começa em 1
+            $comando->execute([
+                ':ordem' => $nova_ordem,
+                ':id' => filter_var($id, FILTER_VALIDATE_INT),
+                ':id_usuario' => $id_do_usuario
+            ]);
         }
-    } else {
-        http_response_code(400);
-        $resposta['erro'] = 'Dados inválidos para reordenação.';
+
+        $pdo->commit();
+        $resposta['sucesso'] = true;
+
+    } catch (PDOException $e) {
+        $pdo->rollBack();
+        http_response_code(500);
+        $resposta['erro'] = 'Erro de Servidor ao reordenar: ' . $e->getMessage();
+        error_log("API REORDENAR (drag-drop) - ERRO PDO: " . $e->getMessage());
     }
 } else {
-    http_response_code(405);
-    $resposta['erro'] = 'Método não permitido.';
+    http_response_code(400);
+    $resposta['erro'] = 'Dados inválidos para reordenação.';
 }
 
 echo json_encode($resposta);
+?>
