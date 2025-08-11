@@ -23,7 +23,7 @@
  */
 
 /* ===================================================================================
-// VARIÁVEIS DE TEMA E MODO ESCURO
+// VARIÃ VEIS DE TEMA E MODO ESCURO
 // =================================================================================== */
 
 :root {
@@ -78,7 +78,7 @@ body.travamento-rolagem-modal {
 }
 
 /* ===================================================================================
-// CABEÇALHO PRINCIPAL
+// CABEÃ‡ALHO PRINCIPAL
 // =================================================================================== */
 
 .cabecalho-principal {
@@ -240,7 +240,7 @@ body.travamento-rolagem-modal {
 }
 
 /* ===================================================================================
-// ESTRUTURA DOS CARDS DE LANÇAMENTOS
+// ESTRUTURA DOS CARDS DE LANÃ‡AMENTOS
 // =================================================================================== */
 
 .grid-lancamentos {
@@ -293,7 +293,7 @@ body.travamento-rolagem-modal {
 }
 
 /* ===================================================================================
-// ESTILOS DE FORMULÁRIO GENÉRICOS
+// ESTILOS DE FORMULÃ RIO GENÃ‰RICOS
 // =================================================================================== */
 
 .container-formularios {
@@ -354,7 +354,7 @@ button:hover {
 }
 
 /* ===================================================================================
-// TABELAS DE LANÇAMENTOS
+// TABELAS DE LANÃ‡AMENTOS
 // =================================================================================== */
 
 .tabela-lancamentos {
@@ -438,7 +438,7 @@ tr.paga td {
 }
 
 /* ===================================================================================
-// COMPONENTE ACORDEÃO (USADO PARA CARTÕES DE CRÉDITO)
+// COMPONENTE ACORDEÃƒO (USADO PARA CARTÃ•ES DE CRÃ‰DITO)
 // =================================================================================== */
 
 #cards-terceiros-container {
@@ -687,7 +687,7 @@ tr.paga td {
 }
 
 /* ===================================================================================
-// ESTILOS DO FORMULÁRIO DE EDIÇÃO (MODAL)
+// ESTILOS DO FORMULÃ RIO DE EDIÃ‡ÃƒO (MODAL)
 // =================================================================================== */
 
 #modal-edicao .modal-conteudo {
@@ -761,7 +761,7 @@ tr.paga td {
   margin-right: 8px;
 }
 
-/* Item da lista (li) que contém o drag-handle */
+/* Item da lista (li) que contÃ©m o drag-handle */
 .acordeao-corpo li {
   display: flex;
   align-items: center;
@@ -797,10 +797,10 @@ tr.paga td {
 }
 
 /* ===================================================================================
-// OUTROS COMPONENTES E UTILITÁRIOS
+// OUTROS COMPONENTES E UTILITÃ RIOS
 // =================================================================================== */
 
-/* Estilização da Barra de Rolagem */
+/* EstilizaÃ§Ã£o da Barra de Rolagem */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -820,7 +820,7 @@ tr.paga td {
   background-color: rgba(0, 0, 0, 0.3);
 }
 
-/* Linha de conferência do valor do app de cartão de crédito */
+/* Linha de conferÃªncia do valor do app de cartÃ£o de crÃ©dito */
 .linha-comparacao-app {
   display: flex;
   align-items: center;
@@ -848,7 +848,7 @@ tr.paga td {
   color: var(--cor-principal);
 }
 
-/* Menu de Ações para Mobile */
+/* Menu de AÃ§Ãµes para Mobile */
 .menu-acoes-mobile {
   position: relative;
   display: none;
@@ -896,7 +896,7 @@ tr.paga td {
   background-color: var(--cor-fundo);
 }
 
-/* Textarea para anotações */
+/* Textarea para anotaÃ§Ãµes */
 .area-anotacoes {
   width: 100%;
   min-height: 400px;
@@ -920,7 +920,7 @@ tr.paga td {
 }
 
 /* ===================================================================================
-// ESTILOS RESPONSIVOS PARA DISPOSITIVOS MÓVEIS
+// ESTILOS RESPONSIVOS PARA DISPOSITIVOS MÃ“VEIS
 // =================================================================================== */
 
 @media screen and (max-width: 768px) {
@@ -1011,6 +1011,22 @@ tr.paga td {
   #formulario-edicao .grupo-formulario select {
     width: 100%;
   }
+
+  /* ========== INÍCIO DAS CORREÇÕES ========== */
+  .celula-com-acoes {
+    white-space: normal; /* Permite que o conteúdo quebre para a próxima linha */
+    display: flex;
+    flex-wrap: wrap; /* Garante que os itens dentro do flex container possam quebrar a linha */
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem; /* Adiciona um espaço caso os botões quebrem a linha */
+  }
+
+  .area-anotacoes {
+    overflow-wrap: break-word; /* Força a quebra de palavras/linhas muito longas */
+    word-wrap: break-word; /* Fallback para navegadores mais antigos */
+  }
+  /* ========== FIM DAS CORREÇÕES ========== */
 }
 
 body.modo-dark #formulario-edicao .grupo-formulario select {
@@ -1018,7 +1034,7 @@ body.modo-dark #formulario-edicao .grupo-formulario select {
 }
 
 /* ===================================================================================
-// IMPRESSÃO DE RELATÓRIOS
+// IMPRESSÃƒO DE RELATÃ“RIOS
 // =================================================================================== */
 
 .botao-imprimir {
@@ -1033,7 +1049,7 @@ body.modo-dark #formulario-edicao .grupo-formulario select {
 }
 
 /* ===================================================================================
-// RODAPÉ
+// RODAPÃ‰
 // =================================================================================== */
 
 .rodape-principal {

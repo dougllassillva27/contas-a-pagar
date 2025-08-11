@@ -883,9 +883,9 @@ function preencherTabelaDeContasPessoais(corpoDaTabela, listaDeContas) {
     linha.dataset.id = conta.id;
     const infoParcela = conta.parcela_info ? ` (${escaparHtml(conta.parcela_info)})` : '';
     linha.innerHTML = `
-        <td data-label="Status"><input type="checkbox" class="status-conta" data-id="${conta.id}" ${conta.status === 'PAGA' ? 'checked' : ''}></td>
-        <td data-label="Descrição">${escaparHtml(conta.descricao)}${infoParcela}</td>
-        <td data-label="Valor" class="celula-com-acoes">
+        <td><input type="checkbox" class="status-conta" data-id="${conta.id}" ${conta.status === 'PAGA' ? 'checked' : ''}></td>
+        <td>${escaparHtml(conta.descricao)}${infoParcela}</td>
+        <td class="celula-com-acoes">
             <span>${formatarParaMoeda(conta.valor)}</span>
             <div class="acoes-linha">
                 <i data-feather="move" class="drag-handle"></i>
@@ -912,8 +912,8 @@ function preencherTabelaDeRendas(dadosDasRendas) {
     const linha = corpoDaTabela.insertRow();
     linha.dataset.id = renda.id;
     linha.innerHTML = `
-        <td data-label="Descrição">${escaparHtml(renda.descricao)}</td>
-        <td data-label="Valor" class="celula-com-acoes">
+        <td>${escaparHtml(renda.descricao)}</td>
+        <td class="celula-com-acoes">
             <span>${formatarParaMoeda(renda.valor)}</span>
             <div class="acoes-linha">
                 <i data-feather="move" class="drag-handle"></i>
