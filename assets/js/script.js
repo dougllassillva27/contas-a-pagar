@@ -17,7 +17,7 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT SHALL THE
+ * IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
@@ -422,6 +422,7 @@ function abrirModal(seletor) {
 
     modal.style.display = 'flex';
     document.body.classList.add('travamento-rolagem-modal');
+    document.documentElement.classList.add('travamento-rolagem-modal');
   }
 }
 
@@ -434,6 +435,7 @@ function fecharModal(seletor) {
   if (modal) {
     modal.style.display = 'none';
     document.body.classList.remove('travamento-rolagem-modal');
+    document.documentElement.classList.remove('travamento-rolagem-modal');
   }
 }
 
@@ -516,7 +518,6 @@ function abrirModalDetalhesCartao(nomeTerceiro) {
   const chaveDeDados = nomeTerceiro.replace(' cartão', '');
   const dados = dadosAgrupadosCartao[chaveDeDados];
   if (!dados) return;
-
   const modalTitulo = document.getElementById('modal-detalhes-titulo');
   const modalLista = document.getElementById('modal-detalhes-lista');
   const modalTotal = document.getElementById('modal-detalhes-total');
@@ -539,7 +540,6 @@ function abrirModalDetalhesCartao(nomeTerceiro) {
     coluna1.className = 'coluna-detalhes';
     coluna2.className = 'coluna-detalhes';
     modalLista.append(coluna1, coluna2);
-
     dados.itens.forEach((item, indice) => {
       const infoParcela = item.parcela_info ? ` (${escaparHtml(item.parcela_info)})` : '';
       const itemDiv = document.createElement('div');
@@ -658,7 +658,6 @@ async function executarExclusao() {
   const botaoConfirmar = document.getElementById('botao-executar-confirmacao');
   const id = botaoConfirmar.dataset.idParaExcluir;
   const tipo = botaoConfirmar.dataset.tipoParaExcluir;
-
   if (tipo === 'mes') {
     try {
       const resposta = await fetch(`${BASE_URL}/api/deletar_mes.php`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mes_ano: MES_ANO_ATUAL }) });
@@ -813,34 +812,63 @@ function renderizarPainel(listaDeRendas, listaDeTodasAsContas) {
 
   const contasDeTerceiros = listaDeTodasAsContas.filter((c) => c.nome_terceiro);
 
+  // Calcula totais "A PAGAR" (apenas pendentes) e "GERAL"
+  const totalGeralFixas = contasPessoaisFixas.reduce((s, c) => s + parseFloat(c.valor), 0);
+  const totalAPagarFixas = contasPessoaisFixas.filter((c) => c.status !== 'PAGA').reduce((s, c) => s + parseFloat(c.valor), 0);
+
+  const totalGeralVariaveis = contasPessoaisVariaveis.reduce((s, c) => s + parseFloat(c.valor), 0);
+  const totalAPagarVariaveis = contasPessoaisVariaveis.filter((c) => c.status !== 'PAGA').reduce((s, c) => s + parseFloat(c.valor), 0);
+
+  const totalGeralMorr = contasTipoMorr.reduce((s, c) => s + parseFloat(c.valor), 0);
+  const totalAPagarMorr = contasTipoMorr.filter((c) => c.status !== 'PAGA').reduce((s, c) => s + parseFloat(c.valor), 0);
+
+  const totalGeralMae = contasTipoMae.reduce((s, c) => s + parseFloat(c.valor), 0);
+  const totalAPagarMae = contasTipoMae.filter((c) => c.status !== 'PAGA').reduce((s, c) => s + parseFloat(c.valor), 0);
+
+  const totalGeralVo = contasTipoVo.reduce((s, c) => s + parseFloat(c.valor), 0);
+  const totalAPagarVo = contasTipoVo.filter((c) => c.status !== 'PAGA').reduce((s, c) => s + parseFloat(c.valor), 0);
+
   const gastosDeTerceirosAgrupados = agruparGastosDeTerceiros(contasDeTerceiros);
-  const totalContasVariaveis = contasPessoaisVariaveis.reduce((s, c) => s + parseFloat(c.valor), 0);
-  const grupoDodo = { total: totalContasVariaveis, itens: contasPessoaisVariaveis };
+  const grupoDodo = {
+    total: totalGeralVariaveis,
+    totalAPagar: totalAPagarVariaveis,
+    itens: contasPessoaisVariaveis,
+  };
   dadosAgrupadosCartao = { Dodo: grupoDodo, ...gastosDeTerceirosAgrupados };
 
   preencherTabelaDeRendas(listaDeRendas);
   preencherTabelaDeContasPessoais(document.querySelector('#tabela-contas-fixas tbody'), contasPessoaisFixas);
   preencherTabelaDeContasPessoais(document.querySelector('#tabela-contas-variaveis tbody'), contasPessoaisVariaveis);
   preencherCartoesDeTerceiros(dadosAgrupadosCartao, document.getElementById('cards-terceiros-container'), true, true);
-  renderizarCardExclusivo('morr', contasTipoMorr, gastosDeTerceirosAgrupados['Morr']);
-  renderizarCardExclusivo('mae', contasTipoMae, gastosDeTerceirosAgrupados['Mãe']);
-  renderizarCardExclusivo('vo', contasTipoVo, gastosDeTerceirosAgrupados['Vô']);
+
+  const gastosCartaoMorr = gastosDeTerceirosAgrupados['Morr'] || { total: 0, totalAPagar: 0, itens: [] };
+  const gastosCartaoMae = gastosDeTerceirosAgrupados['Mãe'] || { total: 0, totalAPagar: 0, itens: [] };
+  const gastosCartaoVo = gastosDeTerceirosAgrupados['Vô'] || { total: 0, totalAPagar: 0, itens: [] };
+
+  renderizarCardExclusivo('morr', contasTipoMorr, gastosCartaoMorr);
+  renderizarCardExclusivo('mae', contasTipoMae, gastosCartaoMae);
+  renderizarCardExclusivo('vo', contasTipoVo, gastosCartaoVo);
 
   const totalRendas = listaDeRendas.reduce((s, r) => s + parseFloat(r.valor), 0);
   const totalContasPessoais = contasPessoaisPadrao.reduce((s, c) => s + parseFloat(c.valor || 0), 0);
-  const totalContasFixas = contasPessoaisFixas.reduce((s, c) => s + parseFloat(c.valor), 0);
   const totalCartaoDeCredito = Object.values(dadosAgrupadosCartao).reduce((s, g) => s + g.total, 0);
-  const totalFinalMorr = contasTipoMorr.reduce((s, c) => s + parseFloat(c.valor), 0) + (gastosDeTerceirosAgrupados['Morr']?.total || 0);
-  const totalFinalMae = contasTipoMae.reduce((s, c) => s + parseFloat(c.valor), 0) + (gastosDeTerceirosAgrupados['Mãe']?.total || 0);
-  const totalFinalVo = contasTipoVo.reduce((s, c) => s + parseFloat(c.valor), 0) + (gastosDeTerceirosAgrupados['Vô']?.total || 0);
+
+  const totalFinalMorr = totalGeralMorr + gastosCartaoMorr.total;
+  const totalFinalAPagarMorr = totalAPagarMorr + gastosCartaoMorr.totalAPagar;
+
+  const totalFinalMae = totalGeralMae + gastosCartaoMae.total;
+  const totalFinalAPagarMae = totalAPagarMae + gastosCartaoMae.totalAPagar;
+
+  const totalFinalVo = totalGeralVo + gastosCartaoVo.total;
+  const totalFinalAPagarVo = totalAPagarVo + gastosCartaoVo.totalAPagar;
 
   atualizarResumoGeral(totalRendas, totalContasPessoais);
-  atualizarTitulosDosCards(totalContasFixas, totalContasVariaveis, totalCartaoDeCredito, totalFinalMorr, totalFinalMae, totalFinalVo);
+  atualizarTitulosDosCards({ aPagar: totalAPagarFixas, geral: totalGeralFixas }, { aPagar: totalAPagarVariaveis, geral: totalGeralVariaveis }, totalCartaoDeCredito, { aPagar: totalFinalAPagarMorr, geral: totalFinalMorr }, { aPagar: totalFinalAPagarMae, geral: totalFinalMae }, { aPagar: totalFinalAPagarVo, geral: totalFinalVo });
   vincularListenersDeStatusDasContas();
 
   ajustarLayoutDesktop();
 
-  // INICIALIZA o drag-and-drop nos containers
+  // INICIALIZA o drag-and-drop e os ícones em todas as telas
   document.querySelectorAll('.tabela-lancamentos tbody').forEach((tbody) => {
     inicializarArrastarESoltar(tbody, 'conta');
   });
@@ -858,15 +886,18 @@ function renderizarPainel(listaDeRendas, listaDeTodasAsContas) {
  * @returns {object} Um objeto onde cada chave é um nome de terceiro e o valor é um objeto com {total, itens}.
  */
 function agruparGastosDeTerceiros(contasDeTerceiros) {
-  const agrupador = contasDeTerceiros.reduce((acc, conta) => {
+  return contasDeTerceiros.reduce((acc, conta) => {
     if (!acc[conta.nome_terceiro]) {
-      acc[conta.nome_terceiro] = { total: 0, itens: [] };
+      acc[conta.nome_terceiro] = { total: 0, totalAPagar: 0, itens: [] };
     }
-    acc[conta.nome_terceiro].total += parseFloat(conta.valor);
+    const valorConta = parseFloat(conta.valor);
+    acc[conta.nome_terceiro].total += valorConta;
+    if (conta.status !== 'PAGA') {
+      acc[conta.nome_terceiro].totalAPagar += valorConta;
+    }
     acc[conta.nome_terceiro].itens.push(conta);
     return acc;
   }, {});
-  return agrupador;
 }
 
 /**
@@ -887,12 +918,12 @@ function preencherTabelaDeContasPessoais(corpoDaTabela, listaDeContas) {
         <td>${escaparHtml(conta.descricao)}${infoParcela}</td>
         <td class="celula-com-acoes">
             <span>${formatarParaMoeda(conta.valor)}</span>
-            <div class="acoes-linha">
+             <div class="acoes-linha">
                 <i data-feather="move" class="drag-handle"></i>
                 <button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="conta" data-id="${conta.id}">
                     <i data-feather="edit-2"></i>
                 </button>
-                <button class="botao-acao-linha" title="Excluir" data-acao="excluir" data-tipo="conta" data-id="${conta.id}">
+                 <button class="botao-acao-linha" title="Excluir" data-acao="excluir" data-tipo="conta" data-id="${conta.id}">
                     <i data-feather="trash-2"></i>
                 </button>
             </div>
@@ -923,7 +954,7 @@ function preencherTabelaDeRendas(dadosDasRendas) {
                 <button class="botao-acao-linha" title="Excluir" data-acao="excluir" data-tipo="renda" data-id="${renda.id}">
                     <i data-feather="trash-2"></i>
                 </button>
-            </div>
+             </div>
         </td>`;
   });
 }
@@ -931,7 +962,7 @@ function preencherTabelaDeRendas(dadosDasRendas) {
 /**
  * Preenche o container com os acordeões dos gastos de terceiros.
  * @param {object} gastos Objeto com os gastos de terceiros agrupados.
- * @param {HTMLElement|null} container O elemento container onde os acordeões serão inseridos.
+ * @param {HTMLElement|null} container O elemento container onde os acordeões serâo inseridos.
  * @param {boolean} limparContainer Flag para limpar o container antes de inserir.
  * @param {boolean} comBotaoDetalhes Flag para renderizar o botão de ver detalhes.
  */
@@ -951,11 +982,11 @@ function preencherCartoesDeTerceiros(gastos, container = null, limparContainer =
     const htmlDosItens = dados.itens
       .map(
         (item) =>
-          `<li data-id="${item.id}">
+          `<li data-id="${item.id}" class="${item.status === 'PAGA' ? 'paga' : ''}">
             <div class="conteudo-item-lista">
-                <span>${escaparHtml(item.descricao)}${item.parcela_info ? ` (${escaparHtml(item.parcela_info)})` : ''}: <strong>${formatarParaMoeda(item.valor)}</strong></span>
+                <span><input type="checkbox" class="status-conta" data-id="${item.id}" ${item.status === 'PAGA' ? 'checked' : ''}> ${escaparHtml(item.descricao)}${item.parcela_info ? ` (${escaparHtml(item.parcela_info)})` : ''}: <strong>${formatarParaMoeda(item.valor)}</strong></span>
                 <div class="acoes-linha">
-                    <i data-feather="move" class="drag-handle"></i>
+                     <i data-feather="move" class="drag-handle"></i>
                     <button class="botao-acao-linha" title="Editar" data-acao="editar" data-tipo="conta" data-id="${item.id}">
                         <i data-feather="edit-2"></i>
                     </button>
@@ -975,6 +1006,11 @@ function preencherCartoesDeTerceiros(gastos, container = null, limparContainer =
            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 
  16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
          </span>`;
+
+    const totalAPagar = dados.totalAPagar;
+    const totalGeral = dados.total;
+    const corTotal = totalAPagar > 0 ? 'var(--cor-perigo)' : 'var(--cor-sucesso)';
+
     const itemAcordeao = document.createElement('div');
     itemAcordeao.className = 'acordeao-item';
     itemAcordeao.innerHTML = `
@@ -982,7 +1018,7 @@ function preencherCartoesDeTerceiros(gastos, container = null, limparContainer =
         ${iconeHtml}
         <span class="nome-terceiro">${escaparHtml(nome)}</span>
         <div class="cabecalho-direita">
-          <strong class="total-terceiro">${formatarParaMoeda(dados.total)}</strong>
+          <strong class="total-terceiro" style="color: ${corTotal};">${formatarParaMoeda(totalAPagar)}</strong>
         </div>
       </div>
       <div class="acordeao-corpo">
@@ -1017,13 +1053,13 @@ function atualizarResumoGeral(totalRendas, totalContasPessoais) {
 /**
  * Atualiza os totais nos títulos dos cards do painel.
  */
-function atualizarTitulosDosCards(totalContasFixas, totalContasVariaveis, totalCartaoDeCredito, totalMorr, totalMae, totalVo) {
-  document.getElementById('total-contas-fixas').textContent = formatarParaMoeda(totalContasFixas);
-  document.getElementById('total-contas-variaveis').textContent = formatarParaMoeda(totalContasVariaveis);
+function atualizarTitulosDosCards(totaisFixas, totaisVariaveis, totalCartaoDeCredito, totaisMorr, totaisMae, totaisVo) {
+  document.getElementById('total-contas-fixas').textContent = formatarParaMoeda(totaisFixas.aPagar);
+  document.getElementById('total-contas-variaveis').textContent = formatarParaMoeda(totaisVariaveis.aPagar);
   document.getElementById('titulo-contas-terceiros').innerHTML = `Cartão de Crédito <span class="card-titulo-total">${formatarParaMoeda(totalCartaoDeCredito)}</span>`;
-  document.getElementById('total-contas-morr').textContent = formatarParaMoeda(totalMorr);
-  document.getElementById('total-contas-mae').textContent = formatarParaMoeda(totalMae);
-  document.getElementById('total-contas-vo').textContent = formatarParaMoeda(totalVo);
+  document.getElementById('total-contas-morr').textContent = formatarParaMoeda(totaisMorr.aPagar);
+  document.getElementById('total-contas-mae').textContent = formatarParaMoeda(totaisMae.aPagar);
+  document.getElementById('total-contas-vo').textContent = formatarParaMoeda(totaisVo.aPagar);
 }
 
 // ===================================================================================

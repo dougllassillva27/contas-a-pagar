@@ -15,7 +15,8 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
@@ -23,7 +24,7 @@
  */
 
 /* ===================================================================================
-// VARIÃ VEIS DE TEMA E MODO ESCURO
+// VARIÁVEIS DE TEMA E MODO ESCURO
 // =================================================================================== */
 
 :root {
@@ -73,12 +74,13 @@ body {
   line-height: 1.6;
 }
 
-body.travamento-rolagem-modal {
+body.travamento-rolagem-modal,
+html.travamento-rolagem-modal {
   overflow: hidden;
 }
 
 /* ===================================================================================
-// CABEÃ‡ALHO PRINCIPAL
+// CABEÇALHO PRINCIPAL
 // =================================================================================== */
 
 .cabecalho-principal {
@@ -240,15 +242,16 @@ body.travamento-rolagem-modal {
 }
 
 /* ===================================================================================
-// ESTRUTURA DOS CARDS DE LANÃ‡AMENTOS
+// ESTRUTURA DOS CARDS DE LANÇAMENTOS
 // =================================================================================== */
 
 .grid-lancamentos {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  align-items: start; /* Impede que os cards estiquem verticalmente */
   gap: 1.5rem;
-  align-items: start;
-  margin-bottom: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .card-painel {
@@ -269,6 +272,24 @@ body.travamento-rolagem-modal {
   margin-top: 0;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--cor-borda);
+}
+
+.valor-total-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.2;
+}
+
+.total-principal-card {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.total-secundario-card {
+  font-size: 0.8rem;
+  color: var(--cor-texto-secundario);
+  text-decoration: line-through;
 }
 
 .card-titulo-total {
@@ -293,7 +314,7 @@ body.travamento-rolagem-modal {
 }
 
 /* ===================================================================================
-// ESTILOS DE FORMULÃ RIO GENÃ‰RICOS
+// ESTILOS DE FORMULÁRIO GENÉRICOS
 // =================================================================================== */
 
 .container-formularios {
@@ -354,7 +375,7 @@ button:hover {
 }
 
 /* ===================================================================================
-// TABELAS DE LANÃ‡AMENTOS
+// TABELAS DE LANÇAMENTOS
 // =================================================================================== */
 
 .tabela-lancamentos {
@@ -438,7 +459,7 @@ tr.paga td {
 }
 
 /* ===================================================================================
-// COMPONENTE ACORDEÃƒO (USADO PARA CARTÃ•ES DE CRÃ‰DITO)
+// COMPONENTE ACORDEÃO (USADO PARA CARTÕES DE CRÉDITO)
 // =================================================================================== */
 
 #cards-terceiros-container {
@@ -561,6 +582,11 @@ tr.paga td {
 
 .acordeao-corpo li:last-child {
   border-bottom: none;
+}
+
+li.paga span {
+  text-decoration: line-through;
+  color: var(--cor-texto-secundario);
 }
 
 /* ===================================================================================
@@ -687,7 +713,7 @@ tr.paga td {
 }
 
 /* ===================================================================================
-// ESTILOS DO FORMULÃ RIO DE EDIÃ‡ÃƒO (MODAL)
+// ESTILOS DO FORMULÁRIO DE EDIÇÃO (MODAL)
 // =================================================================================== */
 
 #modal-edicao .modal-conteudo {
@@ -761,7 +787,7 @@ tr.paga td {
   margin-right: 8px;
 }
 
-/* Item da lista (li) que contÃ©m o drag-handle */
+/* Item da lista (li) que contém o drag-handle */
 .acordeao-corpo li {
   display: flex;
   align-items: center;
@@ -777,9 +803,8 @@ tr.paga td {
 }
 
 .conteudo-item-lista > span {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
   padding-right: 1rem;
 }
 
@@ -797,10 +822,10 @@ tr.paga td {
 }
 
 /* ===================================================================================
-// OUTROS COMPONENTES E UTILITÃ RIOS
+// OUTROS COMPONENTES E UTILITÁRIOS
 // =================================================================================== */
 
-/* EstilizaÃ§Ã£o da Barra de Rolagem */
+/* Estilização da Barra de Rolagem */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -820,7 +845,7 @@ tr.paga td {
   background-color: rgba(0, 0, 0, 0.3);
 }
 
-/* Linha de conferÃªncia do valor do app de cartÃ£o de crÃ©dito */
+/* Linha de conferência do valor do app de cartão de crédito */
 .linha-comparacao-app {
   display: flex;
   align-items: center;
@@ -848,7 +873,7 @@ tr.paga td {
   color: var(--cor-principal);
 }
 
-/* Menu de AÃ§Ãµes para Mobile */
+/* Menu de Ações para Mobile */
 .menu-acoes-mobile {
   position: relative;
   display: none;
@@ -896,7 +921,7 @@ tr.paga td {
   background-color: var(--cor-fundo);
 }
 
-/* Textarea para anotaÃ§Ãµes */
+/* Textarea para anotações */
 .area-anotacoes {
   width: 100%;
   min-height: 400px;
@@ -920,10 +945,45 @@ tr.paga td {
 }
 
 /* ===================================================================================
-// ESTILOS RESPONSIVOS PARA DISPOSITIVOS MÃ“VEIS
+// ESTILOS RESPONSIVOS PARA DISPOSITIVOS MÓVEIS
 // =================================================================================== */
 
 @media screen and (max-width: 768px) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  /* INÍCIO DA SOLUÇÃO DEFINITIVA PARA TABELAS RESPONSIVAS */
+  .tabela-lancamentos {
+    table-layout: fixed;
+  }
+
+  .tabela-lancamentos th:nth-child(1),
+  .tabela-lancamentos td:nth-child(1) {
+    /* Coluna "Status" */
+    width: 45px;
+    text-align: center;
+  }
+
+  .tabela-lancamentos th:nth-child(3),
+  .tabela-lancamentos td:nth-child(3) {
+    /* Coluna "Valor" e Ações */
+    width: 115px;
+  }
+
+  .tabela-lancamentos td:nth-child(2) {
+    word-break: break-word;
+    white-space: normal;
+  }
+
+  .celula-com-acoes {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  /* FIM DA SOLUÇÃO DEFINITIVA */
+
   .container-principal {
     padding: 0 1rem 1rem;
   }
@@ -979,6 +1039,7 @@ tr.paga td {
   }
   .grid-lancamentos {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
   .card-painel {
     padding: 1rem;
@@ -1012,21 +1073,18 @@ tr.paga td {
     width: 100%;
   }
 
-  /* ========== INÍCIO DAS CORREÇÕES ========== */
   .celula-com-acoes {
-    white-space: normal; /* Permite que o conteúdo quebre para a próxima linha */
+    white-space: normal;
     display: flex;
-    flex-wrap: wrap; /* Garante que os itens dentro do flex container possam quebrar a linha */
-    justify-content: space-between;
+    justify-content: space-between; /* Mantido para o caso geral */
     align-items: center;
-    gap: 0.5rem; /* Adiciona um espaço caso os botões quebrem a linha */
+    gap: 0.5rem;
   }
 
   .area-anotacoes {
-    overflow-wrap: break-word; /* Força a quebra de palavras/linhas muito longas */
-    word-wrap: break-word; /* Fallback para navegadores mais antigos */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
   }
-  /* ========== FIM DAS CORREÇÕES ========== */
 }
 
 body.modo-dark #formulario-edicao .grupo-formulario select {
@@ -1034,7 +1092,7 @@ body.modo-dark #formulario-edicao .grupo-formulario select {
 }
 
 /* ===================================================================================
-// IMPRESSÃƒO DE RELATÃ“RIOS
+// IMPRESSÃO DE RELATÓRIOS
 // =================================================================================== */
 
 .botao-imprimir {
@@ -1049,7 +1107,7 @@ body.modo-dark #formulario-edicao .grupo-formulario select {
 }
 
 /* ===================================================================================
-// RODAPÃ‰
+// RODAPÉ
 // =================================================================================== */
 
 .rodape-principal {
