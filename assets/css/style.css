@@ -74,9 +74,13 @@ body {
   line-height: 1.6;
 }
 
+/* Travamento de rolagem quando modal está aberto */
 body.travamento-rolagem-modal,
 html.travamento-rolagem-modal {
   overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
 }
 
 /* ===================================================================================
@@ -195,19 +199,24 @@ html.travamento-rolagem-modal {
   padding: 0 2rem 2rem;
 }
 
+/* Grid de 4 colunas para os cards de resumo */
 .linha-resumo {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
-  margin: 1.5rem 0;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  width: 100%;
 }
 
+/* Estilo base para todos os cards de resumo */
 .card-resumo {
   background-color: var(--cor-card);
   padding: 1.5rem;
   border-radius: var(--raio-borda);
   box-shadow: var(--sombra-card);
   text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card-resumo h3 {
@@ -226,14 +235,45 @@ html.travamento-rolagem-modal {
   color: var(--cor-principal);
 }
 
+/* Card interativo (clicável) */
 .card-resumo.card-interativo {
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .card-resumo.card-interativo:hover {
   transform: translateY(-3px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+/* Card "Falta Pagar" totalmente neutro (sem destaque) */
+.card-resumo.card-alerta-pagar {
+  /* Remove todas as regras específicas - herda do .card-resumo padrão */
+}
+
+.card-resumo.card-alerta-pagar:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.card-resumo.card-alerta-pagar h3 {
+  color: var(--cor-texto-secundario);
+  font-weight: 500; /* Peso normal como os outros */
+}
+
+.card-resumo.card-alerta-pagar p {
+  color: var(--cor-principal); /* Azul como os valores dos outros cards */
+  font-weight: 700;
+}
+
+/* Modo escuro: remove customizações */
+body.modo-dark .card-resumo.card-alerta-pagar {
+  background: var(--cor-card);
+  border-color: transparent;
+}
+
+/* Modo escuro: ajuste do card de alerta */
+body.modo-dark .card-resumo.card-alerta-pagar {
+  background: linear-gradient(135deg, #3a1a1a 0%, #2a2a2a 100%);
+  border-color: #ef4444;
 }
 
 .container-acoes-principais {
@@ -948,27 +988,69 @@ li.paga span {
 // ESTILOS RESPONSIVOS PARA DISPOSITIVOS MÓVEIS
 // =================================================================================== */
 
+/* Tablets Médios (600px - 768px): 2 colunas nos cards de resumo */
 @media screen and (max-width: 768px) {
+  /* Ajuste dos cards de resumo para tablets */
+  .linha-resumo {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-resumo {
+    padding: 1.25rem;
+  }
+
+  .card-resumo h3 {
+    font-size: 0.85rem;
+  }
+
+  .card-resumo p {
+    font-size: 1.5rem;
+  }
+}
+
+/* Smartphones (< 600px): 1 coluna nos cards de resumo */
+@media screen and (max-width: 599px) {
   html,
   body {
     overflow-x: hidden;
   }
 
-  /* INÍCIO DA SOLUÇÃO DEFINITIVA PARA TABELAS RESPONSIVAS */
+  /* Cards de resumo empilhados verticalmente (1 por linha) */
+  .linha-resumo {
+    grid-template-columns: 1fr;
+    gap: 0.875rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-resumo {
+    padding: 1rem;
+  }
+
+  .card-resumo h3 {
+    font-size: 0.75rem;
+  }
+
+  .card-resumo p {
+    font-size: 1.375rem;
+  }
+
+  /* Ajustes de tabelas responsivas (PADRÃO - para tabelas com 3 colunas) */
   .tabela-lancamentos {
     table-layout: fixed;
   }
 
   .tabela-lancamentos th:nth-child(1),
   .tabela-lancamentos td:nth-child(1) {
-    /* Coluna "Status" */
     width: 45px;
     text-align: center;
   }
 
   .tabela-lancamentos th:nth-child(3),
   .tabela-lancamentos td:nth-child(3) {
-    /* Coluna "Valor" e Ações */
     width: 115px;
   }
 
@@ -982,17 +1064,38 @@ li.paga span {
     flex-wrap: wrap;
     gap: 0.25rem;
   }
-  /* FIM DA SOLUÇÃO DEFINITIVA */
 
+  /* AJUSTE ESPECÍFICO: Tabela de rendas no modal (estrutura diferente) */
+  #modal-rendas .tabela-lancamentos th:nth-child(1),
+  #modal-rendas .tabela-lancamentos td:nth-child(1) {
+    width: auto;
+    text-align: left;
+  }
+
+  #modal-rendas .tabela-lancamentos th:nth-child(2),
+  #modal-rendas .tabela-lancamentos td:nth-child(2) {
+    width: 120px;
+    text-align: right;
+  }
+
+  #modal-rendas .tabela-lancamentos td:nth-child(1) {
+    word-break: break-word;
+    white-space: normal;
+    padding-right: 1rem; /* Espaço entre descrição e valor */
+  }
+
+  /* Ajustes gerais de layout para mobile */
   .container-principal {
     padding: 0 1rem 1rem;
   }
+
   .container-cabecalho {
     padding: 0.75rem 1rem;
     flex-wrap: nowrap;
     gap: 0.5rem;
     align-items: center;
   }
+
   .cabecalho-esquerda {
     width: 100%;
     flex-wrap: nowrap;
@@ -1000,6 +1103,7 @@ li.paga span {
     align-items: center;
     gap: 0.5rem;
   }
+
   .cabecalho-principal h1 {
     font-size: 1rem;
     flex-basis: auto;
@@ -1008,6 +1112,7 @@ li.paga span {
     text-overflow: ellipsis;
     margin-right: auto;
   }
+
   .navegacao-mes {
     flex-wrap: nowrap;
     overflow-x: visible;
@@ -1017,45 +1122,56 @@ li.paga span {
     width: auto;
     flex-shrink: 0;
   }
+
   .navegacao-mes::-webkit-scrollbar {
     display: none;
   }
+
   .navegacao-mes a,
   .navegacao-mes button {
     font-size: 0.8rem;
     padding: 0.3rem 0.6rem;
     flex-shrink: 0;
   }
+
   .navegacao-mes .botao-copiar-mes,
   .navegacao-mes .botao-deletar-mes,
   .navegacao-mes .botao-imprimir {
     display: none;
   }
+
   #alternar-tema {
     display: none;
   }
+
   .menu-acoes-mobile {
     display: block;
   }
+
   .grid-lancamentos {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
+
   .card-painel {
     padding: 1rem;
   }
+
   .modal-conteudo {
     width: 95%;
   }
+
   .container-formularios {
     flex-direction: column;
   }
+
   .modal-conteudo.modal-grande {
     height: auto;
     max-height: 88vh;
     margin-top: 3vh;
     margin-bottom: 3vh;
   }
+
   #formulario-edicao .grupo-formulario {
     flex-direction: column;
     align-items: flex-start;
@@ -1076,7 +1192,7 @@ li.paga span {
   .celula-com-acoes {
     white-space: normal;
     display: flex;
-    justify-content: space-between; /* Mantido para o caso geral */
+    justify-content: space-between;
     align-items: center;
     gap: 0.5rem;
   }
@@ -1087,6 +1203,7 @@ li.paga span {
   }
 }
 
+/* Ajuste do select no modo escuro */
 body.modo-dark #formulario-edicao .grupo-formulario select {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
 }

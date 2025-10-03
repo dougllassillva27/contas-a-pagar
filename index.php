@@ -68,11 +68,28 @@ $nome_mes_atual = strftime('%B/%Y', $data_base->getTimestamp());
     </header>
 
      <main class="container-principal">
-        <section id="resumo-geral" class="linha-resumo">
-            <div id="card-total-rendas" class="card-resumo card-interativo"><h3>Total de Rendas</h3><p id="total-rendas">R$ 0,00</p></div>
-            <div class="card-resumo"><h3>Suas Contas</h3><p id="total-contas">R$ 0,00</p></div>
-            <div class="card-resumo"><h3>Seu Saldo</h3><p id="saldo-mes">R$ 0,00</p></div>
-        </section>
+                <section id="resumo-geral" class="linha-resumo">
+                    <div id="card-total-rendas" class="card-resumo card-interativo">
+                        <h3>Total de Rendas</h3>
+                        <p id="total-rendas">R$ 0,00</p>
+                    </div>
+                    
+                    <div class="card-resumo">
+                        <h3>Suas Contas</h3>
+                        <p id="total-contas">R$ 0,00</p>
+                    </div>
+                    
+                    <div class="card-resumo card-alerta-pagar">
+                        <h3>Falta Pagar</h3>
+                        <p id="valor-pendente">R$ 0,00</p>
+                    </div>
+                    
+                    <div class="card-resumo">
+                        <h3>Seu Saldo</h3>
+                        <p id="saldo-mes">R$ 0,00</p>
+                    </div>
+                </section>
+
 
         <div class="container-acoes-principais">
             <button id="botao-abrir-modal-lancamento" class="botao-acao-principal">+ Adicionar Lançamento</button>
