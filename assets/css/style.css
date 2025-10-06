@@ -718,6 +718,11 @@ li.paga span {
   margin-top: 0.1rem;
 }
 
+/* ⚠️ Oculta a seta no card de Cartão de Crédito */
+.card-painel.abrir-em-desktop > .acordeao-cabecalho.card-titulo .icone-expandir {
+  display: none !important;
+}
+
 /* ===================================================================================
 // CHECKBOX MESTRE DE TERCEIROS (INDIVIDUAL)
 // =================================================================================== */
