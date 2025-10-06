@@ -15,8 +15,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
@@ -244,6 +243,7 @@ html.travamento-rolagem-modal {
   transform: translateY(-3px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
+
 /* Card "Falta Pagar" totalmente neutro (sem destaque) */
 .card-resumo.card-alerta-pagar {
   /* Remove todas as regras específicas - herda do .card-resumo padrão */
@@ -256,18 +256,12 @@ html.travamento-rolagem-modal {
 
 .card-resumo.card-alerta-pagar h3 {
   color: var(--cor-texto-secundario);
-  font-weight: 500; /* Peso normal como os outros */
+  font-weight: 500;
 }
 
 .card-resumo.card-alerta-pagar p {
-  color: var(--cor-principal); /* Azul como os valores dos outros cards */
+  color: var(--cor-principal);
   font-weight: 700;
-}
-
-/* Modo escuro: remove customizações */
-body.modo-dark .card-resumo.card-alerta-pagar {
-  background: var(--cor-card);
-  border-color: transparent;
 }
 
 /* Modo escuro: ajuste do card de alerta */
@@ -288,7 +282,7 @@ body.modo-dark .card-resumo.card-alerta-pagar {
 .grid-lancamentos {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-  align-items: start; /* Impede que os cards estiquem verticalmente */
+  align-items: start;
   gap: 1.5rem;
   width: 100%;
   box-sizing: border-box;
@@ -349,8 +343,9 @@ body.modo-dark .card-resumo.card-alerta-pagar {
 .cabecalho-direita {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding-right: 1rem;
+  gap: 0;
+  padding: 0;
+  min-width: fit-content;
 }
 
 /* ===================================================================================
@@ -499,7 +494,7 @@ tr.paga td {
 }
 
 /* ===================================================================================
-// COMPONENTE ACORDEÃO (USADO PARA CARTÕES DE CRÉDITO)
+// COMPONENTE ACORDEÃO (USADO PARA CARTÕES DE CRÉDITO) - VERSÃO FLEXBOX
 // =================================================================================== */
 
 #cards-terceiros-container {
@@ -521,76 +516,132 @@ tr.paga td {
   background-color: var(--cor-card);
 }
 
+/* ⚠️ NOVA ABORDAGEM: FLEXBOX ao invés de GRID */
 .acordeao-cabecalho {
   width: 100%;
   background-color: transparent;
   border: none;
   padding: 0;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 0;
   cursor: default;
   font-family: var(--fonte-principal);
   font-size: 1rem;
   font-weight: 600;
   text-align: left;
-  gap: 0;
-  flex-wrap: nowrap;
 }
 
 .acordeao-cabecalho:hover {
   background-color: transparent;
 }
 
-.acordeao-cabecalho .nome-terceiro,
-.acordeao-cabecalho .total-terceiro {
-  cursor: pointer;
-  padding: 1rem;
+/* ⚠️ Ícone de expandir (seta ▼) */
+.acordeao-cabecalho .icone-expandir:not(.icone-detalhes) {
   flex-shrink: 0;
-}
-
-.acordeao-cabecalho .nome-terceiro:hover,
-.acordeao-cabecalho .total-terceiro:hover {
-  background-color: var(--cor-fundo);
-}
-
-.acordeao-cabecalho .nome-terceiro {
-  color: var(--cor-texto-principal);
-  flex-grow: 1;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding-left: 1rem;
-  text-align: left;
-}
-
-.acordeao-cabecalho .total-terceiro {
-  color: var(--cor-perigo);
-  flex-shrink: 0;
-}
-
-.acordeao-cabecalho::after {
-  display: none;
-}
-
-.icone-expandir {
+  width: 36px;
   opacity: 0.6;
-  margin-right: 0;
   padding: 0.5rem;
   background-color: transparent;
   border: none;
   cursor: pointer;
   transition: background-color 0.2s, opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.icone-expandir:hover {
+.acordeao-cabecalho .icone-expandir:not(.icone-detalhes):hover {
   opacity: 1;
   background-color: var(--cor-fundo);
 }
 
-.icone-expandir svg {
+.acordeao-cabecalho .icone-expandir svg {
   display: block;
+}
+
+/* ⚠️ Ícone de detalhes (olhinho 👁) */
+.acordeao-cabecalho .icone-detalhes {
+  flex-shrink: 0;
+  width: 36px;
+  opacity: 0.6;
+  padding: 0.5rem;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.acordeao-cabecalho .icone-detalhes:hover {
+  opacity: 1;
+  background-color: var(--cor-fundo);
+}
+
+/* ⚠️ Nome do terceiro - FLEXÍVEL */
+.acordeao-cabecalho .nome-terceiro {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--cor-texto-principal);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+.acordeao-cabecalho .nome-terceiro:hover {
+  background-color: var(--cor-fundo);
+}
+
+/* ⚠️ Container da direita - LARGURA FIXA */
+.acordeao-cabecalho .cabecalho-direita {
+  flex-shrink: 0;
+  width: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0;
+}
+
+.acordeao-cabecalho .total-terceiro {
+  grid-column: 4;
+  color: var(--cor-perigo);
+  cursor: pointer;
+  padding: 1rem 0.5rem 1rem 0;
+  flex-shrink: 0;
+  white-space: nowrap;
+  text-align: right;
+  width: 120px;
+}
+
+/* ⚠️ NOVA REGRA: Específica para o título do card de cartão */
+#titulo-contas-terceiros.total-terceiro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 0.5rem 1rem 0;
+  width: auto; /* ⚠️ Remove largura fixa */
+  grid-column: 2 / 5; /* ⚠️ Ocupa da coluna 2 até 5 (todo espaço disponível) */
+}
+
+/* ⚠️ NOVA REGRA: Valor dentro do título */
+#titulo-contas-terceiros .card-titulo-total {
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.acordeao-cabecalho .total-terceiro:hover {
+  background-color: var(--cor-fundo);
+}
+
+/* ⚠️ Oculta APENAS a seta de expandir nos cards de cartão de crédito */
+#cards-terceiros-container .acordeao-cabecalho .icone-expandir:not(.icone-detalhes) {
+  display: none;
 }
 
 .acordeao-corpo {
@@ -616,7 +667,11 @@ tr.paga td {
   margin: 0;
 }
 
+/* ⚠️ Alinha itens ao topo quando há múltiplas linhas */
 .acordeao-corpo li {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.75rem 0.5rem 0.75rem 0.75rem;
   border-bottom: 1px dashed var(--cor-borda);
 }
 
@@ -629,9 +684,93 @@ li.paga span {
   color: var(--cor-texto-secundario);
 }
 
+/* ⚠️ Conteúdo da lista alinhado ao topo */
+.conteudo-item-lista {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
+  gap: 1rem;
+}
+
+/* Checkbox individual alinhado ao topo */
+.conteudo-item-lista input[type='checkbox'] {
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+/* Texto da descrição pode quebrar em múltiplas linhas */
+.conteudo-item-lista > span {
+  flex-grow: 1;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.5;
+  padding-right: 1rem;
+}
+
+/* Ações da linha alinhadas ao topo */
+.conteudo-item-lista .acoes-linha {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  margin-top: 0.1rem;
+}
+
+/* ===================================================================================
+// CHECKBOX MESTRE DE TERCEIROS (INDIVIDUAL)
+// =================================================================================== */
+
+/* ⚠️ Largura fixa para alinhamento perfeito */
+.checkbox-marcar-terceiro {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--cor-texto-secundario);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--raio-borda);
+  transition: background-color 0.2s, color 0.2s;
+  user-select: none;
+  white-space: nowrap;
+  min-width: 130px;
+  justify-content: flex-start;
+}
+
+.checkbox-marcar-terceiro:hover {
+  background-color: var(--cor-fundo);
+  color: var(--cor-texto-principal);
+}
+
+.checkbox-mestre-terceiro {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  margin: 0;
+  accent-color: var(--cor-principal);
+  flex-shrink: 0;
+}
+
+.checkbox-mestre-terceiro:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.checkbox-mestre-terceiro:indeterminate {
+  accent-color: var(--cor-aviso);
+}
+
+.label-marcar-todas {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 /* ===================================================================================
 // ESTILOS DE MODAIS
 // =================================================================================== */
+
 .modal-camada-externa {
   position: fixed;
   top: 0;
@@ -752,6 +891,85 @@ li.paga span {
   color: var(--cor-principal);
 }
 
+/* ⚠️ NOVO: Estilos do modal de notificação */
+#modal-notificacao .modal-conteudo {
+  max-width: 450px;
+}
+
+#modal-notificacao-mensagem {
+  font-size: 1rem;
+  color: var(--cor-texto-principal);
+  text-align: center;
+  padding: 1rem 0;
+  line-height: 1.6;
+}
+
+#modal-notificacao .modal-rodape {
+  border-top: 1px solid var(--cor-borda);
+  padding: 1rem;
+  text-align: center;
+  background-color: transparent;
+}
+
+/* ⚠️ NOVO: Estilos de botões de ação */
+.botao-principal {
+  padding: 0.6rem 2rem;
+  background-color: var(--cor-principal);
+  color: white;
+  border: none;
+  border-radius: var(--raio-borda);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+  font-family: var(--fonte-principal);
+}
+
+.botao-principal:hover {
+  background-color: var(--cor-principal-hover);
+}
+
+.botao-secundario {
+  padding: 0.6rem 2rem;
+  background-color: var(--cor-fundo);
+  color: var(--cor-texto-principal);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+  font-family: var(--fonte-principal);
+}
+
+.botao-secundario:hover {
+  background-color: var(--cor-borda);
+}
+
+.botao-perigo {
+  padding: 0.6rem 2rem;
+  background-color: var(--cor-perigo);
+  color: white;
+  border: none;
+  border-radius: var(--raio-borda);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+  font-family: var(--fonte-principal);
+}
+
+.botao-perigo:hover {
+  background-color: var(--cor-perigo-hover);
+}
+
+.container-botoes-confirmacao {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
 /* ===================================================================================
 // ESTILOS DO FORMULÁRIO DE EDIÇÃO (MODAL)
 // =================================================================================== */
@@ -825,27 +1043,6 @@ li.paga span {
 
 .acoes-linha .drag-handle {
   margin-right: 8px;
-}
-
-/* Item da lista (li) que contém o drag-handle */
-.acordeao-corpo li {
-  display: flex;
-  align-items: center;
-  padding: 0.5rem 0.5rem 0.5rem 0.75rem;
-}
-
-.conteudo-item-lista {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  min-width: 0;
-}
-
-.conteudo-item-lista > span {
-  white-space: normal;
-  word-break: break-word;
-  padding-right: 1rem;
 }
 
 .sortable-ghost {
@@ -990,7 +1187,6 @@ li.paga span {
 
 /* Tablets Médios (600px - 768px): 2 colunas nos cards de resumo */
 @media screen and (max-width: 768px) {
-  /* Ajuste dos cards de resumo para tablets */
   .linha-resumo {
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
@@ -1009,6 +1205,26 @@ li.paga span {
   .card-resumo p {
     font-size: 1.5rem;
   }
+
+  .checkbox-marcar-terceiro .label-marcar-todas {
+    display: none;
+  }
+
+  .checkbox-marcar-terceiro {
+    padding: 0.25rem;
+    min-width: 40px;
+    margin-right: 0;
+  }
+
+  /* ⚠️ FLEXBOX: Ajusta larguras no tablet */
+  .acordeao-cabecalho .cabecalho-direita {
+    width: 50px;
+  }
+
+  .acordeao-cabecalho .total-terceiro {
+    width: 110px;
+    padding: 1rem 0.5rem 1rem 0.25rem;
+  }
 }
 
 /* Smartphones (< 600px): 1 coluna nos cards de resumo */
@@ -1018,7 +1234,6 @@ li.paga span {
     overflow-x: hidden;
   }
 
-  /* Cards de resumo empilhados verticalmente (1 por linha) */
   .linha-resumo {
     grid-template-columns: 1fr;
     gap: 0.875rem;
@@ -1027,7 +1242,7 @@ li.paga span {
   }
 
   .card-resumo {
-    padding: 1rem;
+    padding: 0.875rem;
   }
 
   .card-resumo h3 {
@@ -1038,7 +1253,45 @@ li.paga span {
     font-size: 1.375rem;
   }
 
-  /* Ajustes de tabelas responsivas (PADRÃO - para tabelas com 3 colunas) */
+  /* ⚠️ FLEXBOX: Ajusta larguras no mobile */
+  .acordeao-cabecalho .icone-detalhes,
+  .acordeao-cabecalho .icone-expandir:not(.icone-detalhes) {
+    width: 32px;
+    padding: 0.4rem;
+  }
+
+  .acordeao-cabecalho .nome-terceiro {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .acordeao-cabecalho .cabecalho-direita {
+    width: 40px;
+  }
+
+  .acordeao-cabecalho .total-terceiro {
+    width: 100px;
+    padding: 0.75rem 0.5rem 0.75rem 0.25rem;
+    font-size: 0.85rem;
+  }
+
+  .checkbox-marcar-terceiro {
+    padding: 0.25rem;
+    min-width: 40px;
+    margin-right: 0;
+  }
+
+  .card-painel {
+    padding: 1rem;
+  }
+
+  .acordeao-corpo-conteudo {
+    padding: 0 0.5rem;
+  }
+
+  .container-principal {
+    padding: 0 0.75rem 1rem;
+  }
+
   .tabela-lancamentos {
     table-layout: fixed;
   }
@@ -1065,7 +1318,6 @@ li.paga span {
     gap: 0.25rem;
   }
 
-  /* AJUSTE ESPECÍFICO: Tabela de rendas no modal (estrutura diferente) */
   #modal-rendas .tabela-lancamentos th:nth-child(1),
   #modal-rendas .tabela-lancamentos td:nth-child(1) {
     width: auto;
@@ -1081,16 +1333,11 @@ li.paga span {
   #modal-rendas .tabela-lancamentos td:nth-child(1) {
     word-break: break-word;
     white-space: normal;
-    padding-right: 1rem; /* Espaço entre descrição e valor */
-  }
-
-  /* Ajustes gerais de layout para mobile */
-  .container-principal {
-    padding: 0 1rem 1rem;
+    padding-right: 1rem;
   }
 
   .container-cabecalho {
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 0.75rem;
     flex-wrap: nowrap;
     gap: 0.5rem;
     align-items: center;
@@ -1105,7 +1352,7 @@ li.paga span {
   }
 
   .cabecalho-principal h1 {
-    font-size: 1rem;
+    font-size: 0.95rem;
     flex-basis: auto;
     white-space: nowrap;
     overflow: hidden;
@@ -1129,8 +1376,8 @@ li.paga span {
 
   .navegacao-mes a,
   .navegacao-mes button {
-    font-size: 0.8rem;
-    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
     flex-shrink: 0;
   }
 
@@ -1151,10 +1398,6 @@ li.paga span {
   .grid-lancamentos {
     grid-template-columns: 1fr;
     gap: 1rem;
-  }
-
-  .card-painel {
-    padding: 1rem;
   }
 
   .modal-conteudo {

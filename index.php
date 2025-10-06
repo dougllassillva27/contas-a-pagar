@@ -1,4 +1,28 @@
 <?php
+/**
+ * MIT License
+ *
+ * Copyright (c) 2025 Douglas Silva
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 include_once $_SERVER['DOCUMENT_ROOT'] . '/inc/versao.php';
 include_once $_SERVER['DOCUMENT_ROOT'] . '/contas/inc/conexao.php';
 include_once $_SERVER['DOCUMENT_ROOT'] . '/contas/inc/proteger_pagina.php';
@@ -10,7 +34,6 @@ $mes_ano_anterior = (clone $data_base)->modify('-1 month')->format('Y-m');
 $mes_ano_seguinte = (clone $data_base)->modify('+1 month')->format('Y-m');
 setlocale(LC_TIME, 'pt_BR.utf-8', 'pt_BR', 'portuguese');
 $nome_mes_atual = strftime('%B/%Y', $data_base->getTimestamp());
-
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -20,7 +43,6 @@ $nome_mes_atual = strftime('%B/%Y', $data_base->getTimestamp());
     <meta name="description" content="Controle suas contas pessoais de forma simples e eficaz.">
     <meta name="keywords" content="contas, valores, organizacao, dinheiro" />
     <meta name="author" content="Douglas Silva" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <meta property="og:title" content="Painel de Controle Financeiro">
     <meta property="og:description" content="Controle suas contas pessoais de forma simples e eficaz.">
@@ -34,7 +56,9 @@ $nome_mes_atual = strftime('%B/%Y', $data_base->getTimestamp());
     <meta name="twitter:title" content="Painel de Controle Financeiro">
     <meta name="twitter:description" content="Controle suas contas pessoais de forma simples e eficaz.">
     <meta name="twitter:image" content="https://dougllassillva27.com.br/<?= versao("$base/assets/img/logo-social-share.webp") ?>">
+    
     <title>Painel Financeiro - <?= htmlspecialchars($nome_mes_atual) ?></title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -67,29 +91,28 @@ $nome_mes_atual = strftime('%B/%Y', $data_base->getTimestamp());
         </div>
     </header>
 
-     <main class="container-principal">
-                <section id="resumo-geral" class="linha-resumo">
-                    <div id="card-total-rendas" class="card-resumo card-interativo">
-                        <h3>Total de Rendas</h3>
-                        <p id="total-rendas">R$ 0,00</p>
-                    </div>
-                    
-                    <div class="card-resumo">
-                        <h3>Suas Contas</h3>
-                        <p id="total-contas">R$ 0,00</p>
-                    </div>
-                    
-                    <div class="card-resumo card-alerta-pagar">
-                        <h3>Falta Pagar</h3>
-                        <p id="valor-pendente">R$ 0,00</p>
-                    </div>
-                    
-                    <div class="card-resumo">
-                        <h3>Seu Saldo</h3>
-                        <p id="saldo-mes">R$ 0,00</p>
-                    </div>
-                </section>
-
+    <main class="container-principal">
+        <section id="resumo-geral" class="linha-resumo">
+            <div id="card-total-rendas" class="card-resumo card-interativo">
+                <h3>Total de Rendas</h3>
+                <p id="total-rendas">R$ 0,00</p>
+            </div>
+            
+            <div class="card-resumo">
+                <h3>Suas Contas</h3>
+                <p id="total-contas">R$ 0,00</p>
+            </div>
+            
+            <div class="card-resumo card-alerta-pagar">
+                <h3>Falta Pagar</h3>
+                <p id="valor-pendente">R$ 0,00</p>
+            </div>
+            
+            <div class="card-resumo">
+                <h3>Seu Saldo</h3>
+                <p id="saldo-mes">R$ 0,00</p>
+            </div>
+        </section>
 
         <div class="container-acoes-principais">
             <button id="botao-abrir-modal-lancamento" class="botao-acao-principal">+ Adicionar Lançamento</button>
@@ -123,7 +146,7 @@ $nome_mes_atual = strftime('%B/%Y', $data_base->getTimestamp());
 
             <section class="card-painel acordeao-item abrir-em-desktop">
                 <div class="acordeao-cabecalho card-titulo" data-acao="alternar-acordeao">
-                    <span class="nome-terceiro" >Suas Contas Cartão de Crédito</span>
+                    <span class="nome-terceiro">Suas Contas Cartão de Crédito</span>
                     <div class="cabecalho-direita">
                         <strong id="total-contas-variaveis" class="total-terceiro"></strong>
                         <span class="icone-expandir">
@@ -131,23 +154,37 @@ $nome_mes_atual = strftime('%B/%Y', $data_base->getTimestamp());
                         </span>
                     </div>
                 </div>
-                 <div class="acordeao-corpo">
+                <div class="acordeao-corpo">
                     <div class="acordeao-corpo-conteudo" style="padding: 0;">
                         <table id="tabela-contas-variaveis" class="tabela-lancamentos" style="margin-top: 0;">
                             <thead><tr><th>Status</th><th>Descrição</th><th class="coluna-valor">Valor</th></tr></thead>
                             <tbody></tbody>
-                         </table>
+                        </table>
                     </div>
                 </div>
             </section>
 
-            <section class="card-painel">
-                 <h2 class="card-titulo" id="titulo-contas-terceiros">Cartão de Crédito</h2>
-                <div class="linha-comparacao-app">
-                    <label for="valor-app-cartao">Cartão de Crédito - APP:</label>
-                    <input type="text" id="valor-app-cartao" name="valor-app-cartao" placeholder="Digite o valor do APP">
+            <!-- Card de Cartão de Crédito (os acordeões individuais são renderizados pelo JS) -->
+            <section class="card-painel abrir-em-desktop">
+                <div class="acordeao-cabecalho card-titulo ativo" data-acao="alternar-acordeao">
+                    <span class="nome-terceiro">Cartão de Crédito</span>
+                    <div class="cabecalho-direita">
+                        <strong id="titulo-contas-terceiros" class="total-terceiro"></strong>
+                        <span class="icone-expandir">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"></path>
+                            </svg>
+                        </span>
+                    </div>
                 </div>
-                <div id="cards-terceiros-container"></div>
+                <div class="acordeao-corpo visivel">
+                    <div class="linha-comparacao-app">
+                        <label for="valor-app-cartao">Cartão de Crédito - APP:</label>
+                        <input type="text" id="valor-app-cartao" name="valor-app-cartao" placeholder="Digite o valor do APP">
+                    </div>
+                    <!-- Os acordeões individuais (Dodo, Sogra, etc.) serão renderizados aqui -->
+                    <div id="cards-terceiros-container"></div>
+                </div>
             </section>
         </div>
 
@@ -173,6 +210,7 @@ $nome_mes_atual = strftime('%B/%Y', $data_base->getTimestamp());
                     </div>
                  </div>
             </section>
+            
             <section class="card-painel acordeao-item abrir-em-desktop">
                 <div class="acordeao-cabecalho card-titulo" data-acao="alternar-acordeao">
                      <span class="nome-terceiro">Mãe total mês <?= strftime('%B', $data_base->getTimestamp()) ?></span>
@@ -194,6 +232,7 @@ $nome_mes_atual = strftime('%B/%Y', $data_base->getTimestamp());
                     </div>
              </div>
             </section>
+            
             <section class="card-painel acordeao-item abrir-em-desktop">
                 <div class="acordeao-cabecalho card-titulo" data-acao="alternar-acordeao">
                      <span class="nome-terceiro">Vô total mês <?= strftime('%B', $data_base->getTimestamp()) ?></span>
@@ -225,6 +264,7 @@ $nome_mes_atual = strftime('%B/%Y', $data_base->getTimestamp());
         </p>
     </footer>
 
+    <!-- Modal de Rendas -->
     <div id="modal-rendas" class="modal-camada-externa" style="display:none;">
         <div class="modal-conteudo">
             <header class="modal-cabecalho">
@@ -239,6 +279,8 @@ $nome_mes_atual = strftime('%B/%Y', $data_base->getTimestamp());
             </div>
         </div>
     </div>
+    
+    <!-- Modal de Novo Lançamento -->
     <div id="modal-lancamento" class="modal-camada-externa" style="display:none;">
         <div class="modal-conteudo">
             <header class="modal-cabecalho">
@@ -277,6 +319,8 @@ $nome_mes_atual = strftime('%B/%Y', $data_base->getTimestamp());
             </div>
         </div>
     </div>
+    
+    <!-- Modal de Edição -->
     <div id="modal-edicao" class="modal-camada-externa" style="display:none;">
         <div class="modal-conteudo">
             <header class="modal-cabecalho">
@@ -330,6 +374,8 @@ $nome_mes_atual = strftime('%B/%Y', $data_base->getTimestamp());
             </div>
         </div>
     </div>
+    
+    <!-- Modal de Confirmação -->
     <div id="modal-confirmacao" class="modal-camada-externa" style="display:none;">
           <div class="modal-conteudo modal-pequeno">
              <header class="modal-cabecalho">
@@ -346,31 +392,48 @@ $nome_mes_atual = strftime('%B/%Y', $data_base->getTimestamp());
         </div>
       </div>
 
-  <div id="modal-detalhes-cartao" class="modal-camada-externa" style="display:none;">
-    <div class="modal-conteudo modal-grande">
-      <header class="modal-cabecalho">
-        <h2 id="modal-detalhes-titulo">
-          Detalhes de Lançamentos – Dodo – <?= htmlspecialchars($mes_ano_atual) ?>
-        </h2>
-        <button class="modal-botao-fechar">×</button>
-      </header>
-      <div class="modal-corpo">
-        <div id="modal-detalhes-lista"></div>
-      </div>
-       <footer class="modal-rodape">
-         <div id="modal-detalhes-total" class="total-grande">
-            Total: R$ 0,00
+    <!-- Modal de Detalhes do Cartão -->
+    <div id="modal-detalhes-cartao" class="modal-camada-externa" style="display:none;">
+        <div class="modal-conteudo modal-grande">
+            <header class="modal-cabecalho">
+                <h2 id="modal-detalhes-titulo">
+                    Detalhes de Lançamentos – Dodo – <?= htmlspecialchars($mes_ano_atual) ?>
+                </h2>
+                <button class="modal-botao-fechar">×</button>
+            </header>
+            <div class="modal-corpo">
+                <div id="modal-detalhes-lista"></div>
+            </div>
+            <footer class="modal-rodape">
+                <div id="modal-detalhes-total" class="total-grande">
+                    Total: R$ 0,00
+                </div>
+            </footer>
         </div>
-      </footer>
     </div>
-  </div>
 
-  <div id="console-debug"></div>
+    <!-- ⚠️ NOVO: Modal de Notificação (substitui alert) -->
+    <div id="modal-notificacao" class="modal-camada-externa" style="display:none;">
+        <div class="modal-conteudo modal-pequeno">
+            <header class="modal-cabecalho">
+                <h2 id="modal-notificacao-titulo">Aviso</h2>
+                <button class="modal-botao-fechar">×</button>
+            </header>
+            <div class="modal-corpo">
+                <p id="modal-notificacao-mensagem" style="margin: 0; line-height: 1.6; text-align: center;"></p>
+            </div>
+            <div class="modal-rodape" style="text-align: center; padding: 1rem; border-top: 1px solid var(--cor-borda);">
+                <button id="modal-notificacao-ok" class="botao-principal">OK</button>
+            </div>
+        </div>
+    </div>
 
-  <script>
-    const MES_ANO_ATUAL = '<?= $mes_ano_atual ?>';
-    const BASE_URL = '<?= $base ?>';
-  </script>
+    <div id="console-debug"></div>
+
+    <script>
+        const MES_ANO_ATUAL = '<?= $mes_ano_atual ?>';
+        const BASE_URL = '<?= $base ?>';
+    </script>
     <script src="https://unpkg.com/feather-icons"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="<?= versao("$base/assets/js/script.js") ?>"></script>

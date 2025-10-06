@@ -8,16 +8,14 @@
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following 
- conditions:
+ * furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
@@ -28,6 +26,71 @@
 // VARIÁVEIS GLOBAIS DE ESTADO
 // ===================================================================================
 let dadosAgrupadosCartao = {};
+
+// ===================================================================================
+// FUNÇÕES DE MODAL DE NOTIFICAÇÃO (SUBSTITUI ALERT)
+// ===================================================================================
+
+/**
+ * Exibe um modal de notificação personalizado (substitui alert()).
+ * @param {string} mensagem A mensagem a ser exibida.
+ * @param {string} [titulo='Aviso'] O título do modal.
+ */
+function mostrarNotificacao(mensagem, titulo = 'Aviso') {
+  const modal = document.getElementById('modal-notificacao');
+  const modalTitulo = document.getElementById('modal-notificacao-titulo');
+  const modalMensagem = document.getElementById('modal-notificacao-mensagem');
+  const botaoOk = document.getElementById('modal-notificacao-ok');
+
+  modalTitulo.textContent = titulo;
+  modalMensagem.textContent = mensagem;
+
+  abrirModal('modal-notificacao');
+
+  // Remove listeners anteriores
+  const novoElemento = botaoOk.cloneNode(true);
+  botaoOk.parentNode.replaceChild(novoElemento, botaoOk);
+
+  // Adiciona novo listener
+  document.getElementById('modal-notificacao-ok').addEventListener('click', () => {
+    fecharModal('modal-notificacao');
+  });
+}
+
+/**
+ * Exibe um modal de confirmação personalizado (substitui confirm()).
+ * @param {string} mensagem A mensagem de confirmação.
+ * @param {Function} callbackConfirmar Função executada ao confirmar.
+ * @param {string} [titulo='Confirmar'] O título do modal.
+ */
+function mostrarConfirmacao(mensagem, callbackConfirmar, titulo = 'Confirmar') {
+  abrirModalDeConfirmacao({
+    titulo: titulo,
+    mensagem: mensagem,
+    id: null,
+    tipo: 'custom',
+  });
+
+  const botaoConfirmar = document.getElementById('botao-executar-confirmacao');
+  const botaoCancelar = document.getElementById('botao-cancelar-confirmacao');
+
+  // Remove listeners anteriores
+  const novoConfirmar = botaoConfirmar.cloneNode(true);
+  const novoCancelar = botaoCancelar.cloneNode(true);
+  botaoConfirmar.parentNode.replaceChild(novoConfirmar, botaoConfirmar);
+  botaoCancelar.parentNode.replaceChild(novoCancelar, botaoCancelar);
+
+  // Adiciona novos listeners
+  document.getElementById('botao-executar-confirmacao').addEventListener('click', () => {
+    fecharModal('modal-confirmacao');
+    callbackConfirmar();
+  });
+
+  document.getElementById('botao-cancelar-confirmacao').addEventListener('click', () => {
+    fecharModal('modal-confirmacao');
+  });
+}
+
 // ===================================================================================
 // FUNÇÕES DE MANIPULAÇÃO DE FORMULÁRIOS
 // ===================================================================================
@@ -54,11 +117,11 @@ async function manipularSubmissaoDeNovoItem(evento) {
       fecharModal('modal-lancamento');
       carregarDadosDoPainel();
     } else {
-      alert('Erro: ' + resultado.erro);
+      mostrarNotificacao('Erro: ' + resultado.erro, 'Erro ao Adicionar');
     }
   } catch (erro) {
     console.error('Erro ao adicionar item:', erro);
-    alert('Ocorreu um erro de comunicação ao tentar adicionar.');
+    mostrarNotificacao('Ocorreu um erro de comunicação ao tentar adicionar.', 'Erro');
   }
 }
 
@@ -243,6 +306,17 @@ function vincularListenersDeEventosGlobais() {
     });
   });
   document.querySelectorAll('.modal-camada-externa').forEach((modal) => {
+    // Previne scroll ao tocar no overlay em dispositivos móveis
+    modal.addEventListener(
+      'touchmove',
+      (evento) => {
+        if (evento.target.id === modal.id) {
+          evento.preventDefault();
+        }
+      },
+      { passive: false }
+    );
+
     modal.addEventListener('click', (evento) => {
       if (evento.target.id === modal.id) {
         fecharModal(evento.target.id);
@@ -372,12 +446,12 @@ async function enviarNovaOrdemParaAPI(tipo, ordemDosIds) {
     });
     const resultado = await resposta.json();
     if (!resultado.sucesso) {
-      alert('Erro ao salvar a nova ordem: ' + resultado.erro);
-      carregarDadosDoPainel(); // Recarrega para reverter a alteração visual
+      mostrarNotificacao('Erro ao salvar a nova ordem: ' + resultado.erro, 'Erro');
+      carregarDadosDoPainel();
     }
   } catch (erro) {
     console.error('Erro na comunicação ao reordenar:', erro);
-    alert('Ocorreu um erro de comunicação ao tentar salvar a nova ordem.');
+    mostrarNotificacao('Ocorreu um erro de comunicação ao tentar salvar a nova ordem.', 'Erro');
     carregarDadosDoPainel();
   }
 }
@@ -593,11 +667,11 @@ async function carregarDadosDoPainel() {
     carregarValorAppDoBanco();
     carregarAnotacao();
 
-    // NOVA LINHA: Carrega o valor das contas pendentes
+    // Carrega o valor das contas pendentes
     await carregarValorPendente();
   } catch (erro) {
     console.error('Erro ao carregar dados do painel:', erro);
-    alert('Não foi possível carregar os dados do mês.');
+    mostrarNotificacao('Não foi possível carregar os dados do mês.', 'Erro');
   }
 }
 
@@ -643,10 +717,10 @@ async function salvarAlteracoes(evento) {
       fecharModal('modal-edicao');
       carregarDadosDoPainel();
     } else {
-      alert('Erro ao salvar alterações: ' + resultado.erro);
+      mostrarNotificacao('Erro ao salvar alterações: ' + resultado.erro, 'Erro');
     }
   } catch (erro) {
-    alert('Erro de comunicação ao salvar alterações.');
+    mostrarNotificacao('Erro de comunicação ao salvar alterações.', 'Erro');
   }
 }
 
@@ -678,11 +752,11 @@ async function executarExclusao() {
       if (resultado.sucesso) {
         window.location.reload();
       } else {
-        alert(`Erro ao deletar o mês: ${resultado.mensagem || 'Erro desconhecido'}`);
+        mostrarNotificacao(`Erro ao deletar o mês: ${resultado.mensagem || 'Erro desconhecido'}`, 'Erro');
         fecharModal('modal-confirmacao');
       }
     } catch (erro) {
-      alert('Ocorreu um erro de comunicação ao tentar deletar o mês.');
+      mostrarNotificacao('Ocorreu um erro de comunicação ao tentar deletar o mês.', 'Erro');
       fecharModal('modal-confirmacao');
     }
     return;
@@ -698,11 +772,11 @@ async function executarExclusao() {
         fecharModal('modal-confirmacao');
         window.location.href = `?mes=${resultado.dados.proximo_mes}`;
       } else {
-        alert('Erro ao copiar: ' + resultado.erro);
+        mostrarNotificacao('Erro ao copiar: ' + resultado.erro, 'Erro');
         fecharModal('modal-confirmacao');
       }
     } catch (erro) {
-      alert('Ocorreu um erro de comunicação.');
+      mostrarNotificacao('Ocorreu um erro de comunicação.', 'Erro');
       fecharModal('modal-confirmacao');
     }
     return;
@@ -719,10 +793,10 @@ async function executarExclusao() {
       fecharModal('modal-confirmacao');
       carregarDadosDoPainel();
     } else {
-      alert('Erro ao excluir: ' + resultado.erro);
+      mostrarNotificacao('Erro ao excluir: ' + resultado.erro, 'Erro');
     }
   } catch (erro) {
-    alert('Ocorreu um erro de comunicação ao tentar excluir.');
+    mostrarNotificacao('Ocorreu um erro de comunicação ao tentar excluir.', 'Erro');
   }
 }
 
@@ -748,11 +822,11 @@ async function atualizarStatusDeConta(evento) {
     if (resultado.sucesso) {
       carregarDadosDoPainel();
     } else {
-      alert('Erro ao atualizar status: ' + resultado.erro);
+      mostrarNotificacao('Erro ao atualizar status: ' + resultado.erro, 'Erro');
       checkbox.checked = !checkbox.checked;
     }
   } catch (erro) {
-    alert('Ocorreu um erro de comunicação ao tentar atualizar.');
+    mostrarNotificacao('Ocorreu um erro de comunicação ao tentar atualizar.', 'Erro');
   }
 }
 
@@ -796,10 +870,10 @@ async function abrirJanelaDeEdicao(tipo, id) {
       }
       abrirModal('modal-edicao');
     } else {
-      alert('Erro ao buscar dados para edição: ' + resultado.erro);
+      mostrarNotificacao('Erro ao buscar dados para edição: ' + resultado.erro, 'Erro');
     }
   } catch (erro) {
-    alert('Erro de comunicação.');
+    mostrarNotificacao('Erro de comunicação.', 'Erro');
   }
 }
 
@@ -849,40 +923,85 @@ async function carregarValorPendente() {
 function renderizarPainel(listaDeRendas, listaDeTodasAsContas) {
   const tiposExclusivos = ['MORR', 'MAE', 'VO'];
 
+  // Separa contas pessoais (sem terceiro e sem tipo exclusivo)
   const contasPessoaisPadrao = listaDeTodasAsContas.filter((c) => !c.nome_terceiro && !tiposExclusivos.includes(c.tipo));
   const contasPessoaisFixas = contasPessoaisPadrao.filter((c) => c.tipo === 'FIXA');
   const contasPessoaisVariaveis = contasPessoaisPadrao.filter((c) => c.tipo !== 'FIXA');
+
+  // Separa contas especiais (Morr, Mãe, Vô) sem terceiro
   const contasTipoMorr = listaDeTodasAsContas.filter((c) => c.tipo === 'MORR' && !c.nome_terceiro);
   const contasTipoMae = listaDeTodasAsContas.filter((c) => c.tipo === 'MAE' && !c.nome_terceiro);
   const contasTipoVo = listaDeTodasAsContas.filter((c) => c.tipo === 'VO' && !c.nome_terceiro);
 
-  const contasDeTerceiros = listaDeTodasAsContas.filter((c) => c.nome_terceiro);
+  // Calcula totais GERAL e A PAGAR para contas fixas
+  const totalGeralFixas = contasPessoaisFixas.reduce((s, c) => s + parseFloat(c.valor), 0);
+  const totalAPagarFixas = contasPessoaisFixas.filter((c) => c.status !== 'PAGA').reduce((s, c) => s + parseFloat(c.valor), 0);
 
+  // Calcula totais GERAL e A PAGAR para contas variáveis
+  const totalGeralVariaveis = contasPessoaisVariaveis.reduce((s, c) => s + parseFloat(c.valor), 0);
+  const totalAPagarVariaveis = contasPessoaisVariaveis.filter((c) => c.status !== 'PAGA').reduce((s, c) => s + parseFloat(c.valor), 0);
+
+  // Calcula totais GERAL e A PAGAR para Morr (lançamentos diretos)
+  const totalGeralMorr = contasTipoMorr.reduce((s, c) => s + parseFloat(c.valor), 0);
+  const totalAPagarMorr = contasTipoMorr.filter((c) => c.status !== 'PAGA').reduce((s, c) => s + parseFloat(c.valor), 0);
+
+  // Calcula totais GERAL e A PAGAR para Mãe (lançamentos diretos)
+  const totalGeralMae = contasTipoMae.reduce((s, c) => s + parseFloat(c.valor), 0);
+  const totalAPagarMae = contasTipoMae.filter((c) => c.status !== 'PAGA').reduce((s, c) => s + parseFloat(c.valor), 0);
+
+  // Calcula totais GERAL e A PAGAR para Vô (lançamentos diretos)
+  const totalGeralVo = contasTipoVo.reduce((s, c) => s + parseFloat(c.valor), 0);
+  const totalAPagarVo = contasTipoVo.filter((c) => c.status !== 'PAGA').reduce((s, c) => s + parseFloat(c.valor), 0);
+
+  // Agrupa gastos de cartão de terceiros
+  const contasDeTerceiros = listaDeTodasAsContas.filter((c) => c.nome_terceiro);
   const gastosDeTerceirosAgrupados = agruparGastosDeTerceiros(contasDeTerceiros);
-  const totalContasVariaveis = contasPessoaisVariaveis.reduce((s, c) => s + parseFloat(c.valor), 0);
-  const grupoDodo = { total: totalContasVariaveis, itens: contasPessoaisVariaveis };
+
+  // Monta estrutura de dados para o cartão (Dodo + terceiros)
+  const grupoDodo = {
+    total: totalGeralVariaveis,
+    totalAPagar: totalAPagarVariaveis,
+    itens: contasPessoaisVariaveis,
+  };
   dadosAgrupadosCartao = { Dodo: grupoDodo, ...gastosDeTerceirosAgrupados };
 
+  // Preenche tabelas e cards
   preencherTabelaDeRendas(listaDeRendas);
   preencherTabelaDeContasPessoais(document.querySelector('#tabela-contas-fixas tbody'), contasPessoaisFixas);
   preencherTabelaDeContasPessoais(document.querySelector('#tabela-contas-variaveis tbody'), contasPessoaisVariaveis);
   preencherCartoesDeTerceiros(dadosAgrupadosCartao, document.getElementById('cards-terceiros-container'), true, true);
-  renderizarCardExclusivo('morr', contasTipoMorr, gastosDeTerceirosAgrupados['Morr']);
-  renderizarCardExclusivo('mae', contasTipoMae, gastosDeTerceirosAgrupados['Mãe']);
-  renderizarCardExclusivo('vo', contasTipoVo, gastosDeTerceirosAgrupados['Vô']);
 
+  // Gastos de cartão dos terceiros (Morr, Mãe, Vô)
+  const gastosCartaoMorr = gastosDeTerceirosAgrupados['Morr'] || { total: 0, totalAPagar: 0, itens: [] };
+  const gastosCartaoMae = gastosDeTerceirosAgrupados['Mãe'] || { total: 0, totalAPagar: 0, itens: [] };
+  const gastosCartaoVo = gastosDeTerceirosAgrupados['Vô'] || { total: 0, totalAPagar: 0, itens: [] };
+
+  renderizarCardExclusivo('morr', contasTipoMorr, gastosCartaoMorr);
+  renderizarCardExclusivo('mae', contasTipoMae, gastosCartaoMae);
+  renderizarCardExclusivo('vo', contasTipoVo, gastosCartaoVo);
+
+  // Calcula totais finais
   const totalRendas = listaDeRendas.reduce((s, r) => s + parseFloat(r.valor), 0);
   const totalContasPessoais = contasPessoaisPadrao.reduce((s, c) => s + parseFloat(c.valor || 0), 0);
-  const totalContasFixas = contasPessoaisFixas.reduce((s, c) => s + parseFloat(c.valor), 0);
   const totalCartaoDeCredito = Object.values(dadosAgrupadosCartao).reduce((s, g) => s + g.total, 0);
-  const totalFinalMorr = contasTipoMorr.reduce((s, c) => s + parseFloat(c.valor), 0) + (gastosDeTerceirosAgrupados['Morr']?.total || 0);
-  const totalFinalMae = contasTipoMae.reduce((s, c) => s + parseFloat(c.valor), 0) + (gastosDeTerceirosAgrupados['Mãe']?.total || 0);
-  const totalFinalVo = contasTipoVo.reduce((s, c) => s + parseFloat(c.valor), 0) + (gastosDeTerceirosAgrupados['Vô']?.total || 0);
 
+  // Soma os totais finais (lançamentos diretos + cartão)
+  const totalFinalMorr = totalGeralMorr + gastosCartaoMorr.total;
+  const totalFinalAPagarMorr = totalAPagarMorr + gastosCartaoMorr.totalAPagar;
+
+  const totalFinalMae = totalGeralMae + gastosCartaoMae.total;
+  const totalFinalAPagarMae = totalAPagarMae + gastosCartaoMae.totalAPagar;
+
+  const totalFinalVo = totalGeralVo + gastosCartaoVo.total;
+  const totalFinalAPagarVo = totalAPagarVo + gastosCartaoVo.totalAPagar;
+
+  // Atualiza resumo e títulos dos cards
   atualizarResumoGeral(totalRendas, totalContasPessoais);
-  atualizarTitulosDosCards(totalContasFixas, totalContasVariaveis, totalCartaoDeCredito, totalFinalMorr, totalFinalMae, totalFinalVo);
-  vincularListenersDeStatusDasContas();
 
+  // Passa apenas os valores A PAGAR para os cards
+  atualizarTitulosDosCards(totalAPagarFixas, totalAPagarVariaveis, totalCartaoDeCredito, totalFinalAPagarMorr, totalFinalAPagarMae, totalFinalAPagarVo);
+
+  vincularListenersDeStatusDasContas();
   ajustarLayoutDesktop();
 
   // INICIALIZA o drag-and-drop nos containers
@@ -895,23 +1014,35 @@ function renderizarPainel(listaDeRendas, listaDeTodasAsContas) {
   inicializarArrastarESoltar(document.querySelector('#tabela-rendas tbody'), 'renda');
 
   feather.replace();
+
+  // ⚠️ NOVO: Vincula listeners e atualiza estado dos checkboxes mestres de terceiros
+  vincularListenersCheckboxesMestresTerceiros();
+  atualizarTodosCheckboxesMestresTerceiros();
 }
 
 /**
  * Agrupa as contas de terceiros pelo nome do terceiro.
+ * Agora também calcula totalAPagar (apenas contas pendentes).
  * @param {Array} contasDeTerceiros A lista de contas que possuem um 'nome_terceiro'.
- * @returns {object} Um objeto onde cada chave é um nome de terceiro e o valor é um objeto com {total, itens}.
+ * @returns {object} Um objeto onde cada chave é um nome de terceiro e o valor é um objeto com {total, totalAPagar, itens}.
  */
 function agruparGastosDeTerceiros(contasDeTerceiros) {
-  const agrupador = contasDeTerceiros.reduce((acc, conta) => {
+  return contasDeTerceiros.reduce((acc, conta) => {
     if (!acc[conta.nome_terceiro]) {
-      acc[conta.nome_terceiro] = { total: 0, itens: [] };
+      acc[conta.nome_terceiro] = { total: 0, totalAPagar: 0, itens: [] };
     }
-    acc[conta.nome_terceiro].total += parseFloat(conta.valor);
+
+    const valorConta = parseFloat(conta.valor);
+    acc[conta.nome_terceiro].total += valorConta;
+
+    // Verifica se a conta NÃO está paga
+    if (conta.status !== 'PAGA') {
+      acc[conta.nome_terceiro].totalAPagar += valorConta;
+    }
+
     acc[conta.nome_terceiro].itens.push(conta);
     return acc;
   }, {});
-  return agrupador;
 }
 
 /**
@@ -975,6 +1106,7 @@ function preencherTabelaDeRendas(dadosDasRendas) {
 
 /**
  * Preenche o container com os acordeões dos gastos de terceiros.
+ * ⚠️ ATUALIZADO: Agora cada acordeão possui um checkbox mestre individual.
  * @param {object} gastos Objeto com os gastos de terceiros agrupados.
  * @param {HTMLElement|null} container O elemento container onde os acordeões serão inseridos.
  * @param {boolean} limparContainer Flag para limpar o container antes de inserir.
@@ -983,21 +1115,30 @@ function preencherTabelaDeRendas(dadosDasRendas) {
 function preencherCartoesDeTerceiros(gastos, container = null, limparContainer = true, comBotaoDetalhes = false) {
   container = container || document.getElementById('cards-terceiros-container');
   if (!container) return;
+
   if (limparContainer) {
     container.innerHTML = '';
   }
+
   if (Object.keys(gastos).length === 0 && limparContainer) {
     container.innerHTML = '<p>Nenhum gasto de outro terceiro este mês.</p>';
     return;
   }
+
   for (const nome in gastos) {
     if (!gastos[nome] || gastos[nome].itens.length === 0) continue;
+
     const dados = gastos[nome];
+
+    // Gera um ID único para o checkbox mestre desta pessoa
+    const idCheckboxMestre = `checkbox-marcar-todas-${nome.toLowerCase().replace(/\s+/g, '-')}`;
+
     const htmlDosItens = dados.itens
       .map(
         (item) =>
-          `<li data-id="${item.id}">
+          `<li data-id="${item.id}" class="${item.status === 'PAGA' ? 'paga' : ''}">
             <div class="conteudo-item-lista">
+                <input type="checkbox" class="status-conta status-conta-terceiro" data-id="${item.id}" data-nome-terceiro="${escaparHtml(nome)}" ${item.status === 'PAGA' ? 'checked' : ''}>
                 <span>${escaparHtml(item.descricao)}${item.parcela_info ? ` (${escaparHtml(item.parcela_info)})` : ''}: <strong>${formatarParaMoeda(item.valor)}</strong></span>
                 <div class="acoes-linha">
                     <i data-feather="move" class="drag-handle"></i>
@@ -1012,27 +1153,34 @@ function preencherCartoesDeTerceiros(gastos, container = null, limparContainer =
           </li>`
       )
       .join('');
+
     const iconeHtml = comBotaoDetalhes
       ? `<button class="icone-expandir icone-detalhes" title="Ver todos os detalhes" data-acao="ver-detalhes" data-nome-terceiro="${escaparHtml(nome)}">
            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>
          </button>`
-      : `<span class="icone-expandir">
-           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 
- 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
-         </span>`;
+      : '';
+
     const itemAcordeao = document.createElement('div');
     itemAcordeao.className = 'acordeao-item';
     itemAcordeao.innerHTML = `
       <div class="acordeao-cabecalho" data-acao="alternar-acordeao">
+        <span class="icone-expandir">
+           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+        </span>
         ${iconeHtml}
         <span class="nome-terceiro">${escaparHtml(nome)}</span>
         <div class="cabecalho-direita">
+          <label class="checkbox-marcar-terceiro" title="Marcar/Desmarcar todas as contas de ${escaparHtml(nome)}">
+            <input type="checkbox" id="${idCheckboxMestre}" class="checkbox-mestre-terceiro" data-nome-terceiro="${escaparHtml(nome)}">
+            <span class="label-marcar-todas">Marcar todas</span>
+          </label>
           <strong class="total-terceiro">${formatarParaMoeda(dados.total)}</strong>
         </div>
       </div>
       <div class="acordeao-corpo">
         <div class="acordeao-corpo-conteudo"><ul>${htmlDosItens}</ul></div>
       </div>`;
+
     container.appendChild(itemAcordeao);
   }
 }
@@ -1061,6 +1209,7 @@ function atualizarResumoGeral(totalRendas, totalContasPessoais) {
 
 /**
  * Atualiza os totais nos títulos dos cards do painel.
+ * Agora recebe apenas os valores A PAGAR (pendentes).
  */
 function atualizarTitulosDosCards(totalContasFixas, totalContasVariaveis, totalCartaoDeCredito, totalMorr, totalMae, totalVo) {
   document.getElementById('total-contas-fixas').textContent = formatarParaMoeda(totalContasFixas);
@@ -1069,6 +1218,146 @@ function atualizarTitulosDosCards(totalContasFixas, totalContasVariaveis, totalC
   document.getElementById('total-contas-morr').textContent = formatarParaMoeda(totalMorr);
   document.getElementById('total-contas-mae').textContent = formatarParaMoeda(totalMae);
   document.getElementById('total-contas-vo').textContent = formatarParaMoeda(totalVo);
+}
+
+// ===================================================================================
+// FUNÇÕES DE CHECKBOX MESTRE DE TERCEIROS (INDIVIDUAL)
+// ===================================================================================
+
+/**
+ * Atualiza o estado de um checkbox mestre de terceiro específico.
+ * @param {string} nomeTerceiro O nome do terceiro (ex: "Dodo", "Sogra").
+ */
+function atualizarEstadoCheckboxMestreTerceiro(nomeTerceiro) {
+  const idCheckbox = `checkbox-marcar-todas-${nomeTerceiro.toLowerCase().replace(/\s+/g, '-')}`;
+  const checkboxMestre = document.getElementById(idCheckbox);
+
+  if (!checkboxMestre) return;
+
+  // Busca checkboxes deste terceiro específico
+  const checkboxesDaTerceira = document.querySelectorAll(`.status-conta-terceiro[data-nome-terceiro="${nomeTerceiro}"]`);
+
+  if (checkboxesDaTerceira.length === 0) {
+    checkboxMestre.checked = false;
+    checkboxMestre.indeterminate = false;
+    checkboxMestre.disabled = true;
+    return;
+  }
+
+  checkboxMestre.disabled = false;
+
+  const todasMarcadas = Array.from(checkboxesDaTerceira).every((cb) => cb.checked);
+  const algumasMarcadas = Array.from(checkboxesDaTerceira).some((cb) => cb.checked);
+
+  if (todasMarcadas) {
+    checkboxMestre.checked = true;
+    checkboxMestre.indeterminate = false;
+  } else if (algumasMarcadas) {
+    checkboxMestre.checked = false;
+    checkboxMestre.indeterminate = true;
+  } else {
+    checkboxMestre.checked = false;
+    checkboxMestre.indeterminate = false;
+  }
+}
+
+/**
+ * Atualiza o estado de TODOS os checkboxes mestres de terceiros.
+ */
+function atualizarTodosCheckboxesMestresTerceiros() {
+  const checkboxesMestres = document.querySelectorAll('.checkbox-mestre-terceiro');
+  checkboxesMestres.forEach((checkbox) => {
+    const nomeTerceiro = checkbox.dataset.nomeTerceiro;
+    if (nomeTerceiro) {
+      atualizarEstadoCheckboxMestreTerceiro(nomeTerceiro);
+    }
+  });
+}
+
+/**
+ * Marca ou desmarca todas as contas de um terceiro específico em lote.
+ * @param {Event} evento O evento de 'change' do checkbox mestre.
+ */
+async function marcarTodasContasDeTerceiro(evento) {
+  const checkboxMestre = evento.target;
+  const nomeTerceiro = checkboxMestre.dataset.nomeTerceiro;
+  const novoStatus = checkboxMestre.checked ? 'PAGA' : 'PENDENTE';
+
+  // Obtém checkboxes deste terceiro específico
+  const checkboxesDaTerceira = document.querySelectorAll(`.status-conta-terceiro[data-nome-terceiro="${nomeTerceiro}"]`);
+
+  if (checkboxesDaTerceira.length === 0) {
+    mostrarNotificacao(`Não há contas de ${nomeTerceiro} para marcar.`, 'Aviso');
+    checkboxMestre.checked = false;
+    return;
+  }
+
+  // Extrai os IDs das contas
+  const ids = Array.from(checkboxesDaTerceira).map((cb) => parseInt(cb.dataset.id));
+
+  // Confirmação para o usuário
+  const acao = checkboxMestre.checked ? 'marcar como PAGAS' : 'desmarcar (voltar para PENDENTE)';
+  const mensagem = `Deseja realmente ${acao} TODAS as ${ids.length} contas de ${nomeTerceiro}?`;
+
+  // Usa função de confirmação customizada
+  mostrarConfirmacao(
+    mensagem,
+    async () => {
+      // Feedback visual
+      checkboxMestre.disabled = true;
+      const labelElement = checkboxMestre.parentElement.querySelector('.label-marcar-todas');
+      const labelOriginal = labelElement ? labelElement.textContent : '';
+      if (labelElement) labelElement.textContent = 'Processando...';
+
+      try {
+        // Chama a API em lote
+        const resposta = await fetch(`${BASE_URL}/api/contas/atualizar_status_lote.php`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ids: ids,
+            status: novoStatus,
+          }),
+        });
+
+        const resultado = await resposta.json();
+
+        if (resultado.sucesso) {
+          // Sucesso: Recarrega o painel
+          await carregarDadosDoPainel();
+          console.log(`✅ ${resultado.dados.registros_atualizados} conta(s) de ${nomeTerceiro} atualizada(s)`);
+        } else {
+          mostrarNotificacao('Erro ao atualizar contas: ' + resultado.erro, 'Erro');
+          checkboxMestre.checked = !checkboxMestre.checked;
+        }
+      } catch (erro) {
+        console.error('Erro ao processar atualização em lote:', erro);
+        mostrarNotificacao('Ocorreu um erro de comunicação. Verifique sua conexão e tente novamente.', 'Erro');
+        checkboxMestre.checked = !checkboxMestre.checked;
+      } finally {
+        checkboxMestre.disabled = false;
+        if (labelElement) labelElement.textContent = labelOriginal;
+      }
+    },
+    'Confirmar Ação'
+  );
+
+  // Reverte o checkbox caso o usuário cancele
+  checkboxMestre.checked = !checkboxMestre.checked;
+}
+
+/**
+ * Vincula listeners aos checkboxes mestres de terceiros após renderização.
+ */
+function vincularListenersCheckboxesMestresTerceiros() {
+  document.querySelectorAll('.checkbox-mestre-terceiro').forEach((checkbox) => {
+    // Remove listener anterior para evitar duplicação
+    checkbox.removeEventListener('change', marcarTodasContasDeTerceiro);
+    // Adiciona novo listener
+    checkbox.addEventListener('change', marcarTodasContasDeTerceiro);
+  });
 }
 
 // ===================================================================================
